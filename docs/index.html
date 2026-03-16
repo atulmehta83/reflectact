@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A365 Execution Risk Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #161b22 0%, #1c2433 100%);
+    border-bottom: 1px solid #30363d;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #f0f6fc;
+    letter-spacing: -0.3px;
+  }
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+  .header-meta a { font-size: 13px; }
+
+  /* Summary Cards */
+  .summary-row {
+    display: flex;
+    gap: 12px;
+    padding: 20px 32px;
+    flex-wrap: wrap;
+  }
+  .card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px 22px;
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #58a6ff; }
+  .card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #f0f6fc;
+    line-height: 1.1;
+  }
+  .card-label {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card.high .card-value { color: #f85149; }
+  .card.medium .card-value { color: #d29922; }
+  .card.low .card-value { color: #3fb950; }
+  .card.blocked .card-value { color: #f85149; }
+  .card.stale .card-value { color: #d29922; }
+
+  /* Filter Bar */
+  .filter-bar {
+    padding: 0 32px 16px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-bar label {
+    font-size: 12px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+  }
+  .filter-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .filter-btn:hover { border-color: #58a6ff; color: #f0f6fc; }
+  .filter-btn.active {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: #fff;
+  }
+  .filter-count {
+    margin-left: 12px;
+    font-size: 13px;
+    color: #8b949e;
+  }
+
+  /* Table Container */
+  .table-wrap {
+    padding: 0 32px 32px;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 1200px;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #161b22;
+    border-bottom: 2px solid #30363d;
+    padding: 10px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: #f0f6fc; }
+  thead th .sort-arrow {
+    margin-left: 4px;
+    font-size: 10px;
+    opacity: 0.4;
+  }
+  thead th.sorted .sort-arrow { opacity: 1; color: #58a6ff; }
+  tbody tr {
+    border-bottom: 1px solid #21262d;
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: #161b22; }
+  tbody td {
+    padding: 9px 10px;
+    vertical-align: top;
+  }
+
+  /* Risk icon */
+  .risk-icon { font-size: 15px; }
+
+  /* State badges */
+  .state-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .state-Blocked { background: rgba(248,81,73,0.2); color: #f85149; }
+  .state-Proposed { background: rgba(210,153,34,0.2); color: #d29922; }
+  .state-Active { background: rgba(56,139,253,0.2); color: #388bfd; }
+  .state-RollingOut { background: rgba(63,185,80,0.2); color: #3fb950; }
+
+  /* Committed badges */
+  .committed-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .committed-Committed { background: rgba(63,185,80,0.15); color: #3fb950; }
+  .committed-Targeted { background: rgba(210,153,34,0.15); color: #d29922; }
+  .committed-Proposed { background: rgba(248,81,73,0.15); color: #f85149; }
+  .committed-HardCut { background: rgba(188,140,255,0.2); color: #bc8cff; }
+
+  /* Shiproom dot */
+  .shiproom-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .shiproom-Green { background: #3fb950; }
+  .shiproom-Orange { background: #d29922; }
+  .shiproom-Red { background: #f85149; }
+
+  /* Days cell */
+  .days-red { color: #f85149; font-weight: 700; }
+  .days-orange { color: #d29922; font-weight: 600; }
+
+  /* Risk signals */
+  .risk-signal {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin: 1px 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .signal-blocked { background: rgba(248,81,73,0.2); color: #f85149; }
+  .signal-proposed { background: rgba(210,153,34,0.2); color: #d29922; }
+  .signal-stale { background: rgba(210,153,34,0.2); color: #d29922; }
+  .signal-uncommitted { background: rgba(188,140,255,0.2); color: #bc8cff; }
+  .signal-shiproom { background: rgba(210,153,34,0.2); color: #d29922; }
+
+  /* Status tweet */
+  .tweet-cell {
+    max-width: 280px;
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.4;
+  }
+  .tweet-cell.empty { font-style: italic; color: #484f58; }
+
+  /* Title cell */
+  .title-cell {
+    max-width: 320px;
+    white-space: normal;
+  }
+
+  /* Owner cell */
+  .owner-cell { white-space: nowrap; }
+
+  /* Priority */
+  .priority-1 { color: #f85149; font-weight: 700; }
+  .priority-2 { color: #d29922; }
+  .priority-3 { color: #8b949e; }
+
+  /* Row risk highlight */
+  tr.risk-high { border-left: 3px solid #f85149; }
+  tr.risk-medium { border-left: 3px solid #d29922; }
+  tr.risk-low { border-left: 3px solid transparent; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .summary-row { padding: 12px 16px; }
+    .filter-bar { padding: 0 16px 12px; }
+    .table-wrap { padding: 0 16px 16px; }
+    .header { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>A365 Execution Risk Dashboard</h1>
+  <div class="header-meta">
+    <span>March 16, 2026</span>
+    <a href="https://dev.azure.com/domoreexp/MSTeams/_queries/query/ae438a24-5991-4ed8-a85d-0d48f01cc294" target="_blank">Open ADO Query ↗</a>
+  </div>
+</div>
+
+<div class="summary-row" id="summaryRow"></div>
+
+<div class="filter-bar">
+  <label>Filter:</label>
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="high">🔴 High Risk</button>
+  <button class="filter-btn" data-filter="medium">🟡 Medium Risk</button>
+  <button class="filter-btn" data-filter="blocked">Blocked</button>
+  <button class="filter-btn" data-filter="stale">Stale</button>
+  <button class="filter-btn" data-filter="proposed">Proposed</button>
+  <button class="filter-btn" data-filter="uncommitted">Uncommitted</button>
+  <span class="filter-count" id="filterCount"></span>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr id="headerRow"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<script>
+const DATA = [
+  {"riskCount":0,"title":"[Platform] - Client UX + Manifest changes for Slash commands","priority":1,"state":"Active","tags":"AppsAgents; Consumer; Copilot; CY24H2; idc; KR06 Unicorn; MAI; OKRRMMay26; PartnerAsk; PlatWinSlack; PortedToMSETs; ProjectUnicorn; Semester:Dt; SplCldsParityGap; Strategic Bets; TargetedMessaging; TM_Phase1.5; Unicorn_IDC_FY26H1; WinVsSlack","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":3783618,"committed":"Committed","targetDate":"2026-03-23T00:00:00Z","risks":"","statusTweet":"Manifest PR is merged and App Validation Lib updates are complete. MT deployment to DF expected today 3/16.","changedDate":"2026-03-16","assignedTo":"Ankit Saini"},
+  {"riskCount":3,"title":"[Unicorn Platform] - Slash commanding (Post R4 Scope)","priority":2,"state":"Proposed","tags":"Consumer; CY24H2; idc; KR06 Unicorn; PartnerAsk; PortedToMSETs; ProjectUnicorn; Semester:Dt; Strategic Bets; Unicorn_IDC_FY26H1","daysSinceUpdate":27,"type":"Feature","shiproom":"Green","id":4425106,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":"Development in progress","changedDate":"2026-02-16","assignedTo":"Himank Airon"},
+  {"riskCount":0,"title":"Enable Workflows in Shared and Private Channels","priority":1,"state":"RollingOut","tags":"Incident Repair Item; Lowcode FY25H2 Planning; MAI; MFP; NeptuneGA; NoParityIssues; Plat FY25H2; platformCY25H1; PlatWinSlack; TMO; T-Mobile; WinVsSlack; Workflows; Workflows - Slack Compete; WorkflowsCY25Q4","daysSinceUpdate":4,"type":"Feature","shiproom":"Green","id":4017239,"committed":"Committed","targetDate":"2025-12-08T08:00:00Z","risks":"","statusTweet":"Functionality to GA along with platform support: Shared channels: ready, Private channels: waiting on a platform dependency. GA Date: TBD","changedDate":"2026-03-11","assignedTo":"Luis Torres"},
+  {"riskCount":0,"title":"[Shared Channels] Support full Apps Platform in Shared Channels","priority":2,"state":"RollingOut","tags":"AppsAgents; Build2025; CESPartnerAsk; CESPartnerAskCY25H1; CESPartnerAskCY25H2; Consumer; CXTriage; CY24H2; CY25H1; CY25H2; KR06 Unicorn; MAI; MFP; NoParityIssues; OKRRMNov25; OKRRMOct25; PartnerAsk; PortedToMSETs; pri001; ProjectUnicorn; RM_Ship_11_2025; RM_Slip_10_2025; Semester:Br; Semester:Dt; Shared channel; SplCldsException; Strategic Bets; TACO-PartnerAsk; Unicorn_CY25H1; Unicorn_IDC_FY26H1; WinVsSlack","daysSinceUpdate":6,"type":"Feature","shiproom":"Green","id":3468747,"committed":"Committed","targetDate":"2024-05-05T18:30:00Z","risks":"","statusTweet":"Currently in R2","changedDate":"2026-03-10","assignedTo":"Chandra Chebiyyam"},
+  {"riskCount":1,"title":"Graph API for enabling/disabling apps at a channel level.","priority":2,"state":"RollingOut","tags":"unicorn_sc_postGA","daysSinceUpdate":45,"type":"Feature","shiproom":"Green","id":4697902,"committed":"Committed","targetDate":"2026-06-30T07:00:00Z","risks":"stale","statusTweet":"enable FF in /beta prod","changedDate":"2026-01-29","assignedTo":"Devi Shankar Jha"},
+  {"riskCount":1,"title":"[Neptune GA] Shared and Private Channels Support (Bot Posting)","priority":2,"state":"RollingOut","tags":"CXTriage; NeptuneGA; PlatWinSlack; QuarterTracking; WorkflowsCY25Q4","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":4840824,"committed":"Committed","targetDate":"2026-02-11T06:50:00Z","risks":"stale","statusTweet":"SC release. PC pickers in R0, validating before further rollout. R4 support gated on full platform support for apps in PC.","changedDate":"2026-03-03","assignedTo":"Luis Torres"},
+  {"riskCount":0,"title":"[Neptune GA] Workflows v2 (Parent tacking item for external comms)","priority":1,"state":"RollingOut","tags":"admindocsmsg; CreateDesReq; CreateDesReqSS; CXTriage; DesktopOnly; export-auditing-na; Lowcode FY25H2 Planning; MAI; MFP; Neptune; OKRRMSep25; Plat FY25H2; platformCY25H1; PlatWinSlack; PortedToMSETs; RM_Plan_09_2025; RM_Ship_09_2025; SplCldsException; TMO; TMobile; WinVsSlack; Workflows; Workflows - Slack Compete; Workflows Backlog CY24H2","daysSinceUpdate":3,"type":"Feature","shiproom":"Green","id":4106950,"committed":"Committed","targetDate":"2025-05-06T07:00:00Z","risks":"","statusTweet":"Workflows 2.0 is in R4","changedDate":"2026-03-12","assignedTo":"Aditya Lele"},
+  {"riskCount":2,"title":"[COSMIC] [Updates] Cosmic migration","priority":2,"state":"Proposed","tags":"DesktopOnly; Lowcode FY25H2 Planning; MFP; Plat FY25H2; platformCY25H1; Workflows - Slack Compete; workflows backlog CY25H1","daysSinceUpdate":110,"type":"Feature","shiproom":"Green","id":4105464,"committed":"Targeted","targetDate":null,"risks":"proposed,stale","statusTweet":null,"changedDate":"2025-11-25","assignedTo":"Fei Li (Teams Platform)"},
+  {"riskCount":0,"title":"Trigger workflows from a link","priority":2,"state":"Active","tags":"Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; H1Track; MAI; Need Mobile; NeedsSpec; Neptune_PostGA; OnePagerNeeded; PlatWinSlack; primitives; RunExperience; SplCldsParityGap; WinVsSlack; WinVsSlack-LT_tracking; Workflows; WorkflowsC1","daysSinceUpdate":4,"type":"Feature","shiproom":"Green","id":4772552,"committed":"Committed","targetDate":"2026-03-27T07:00:00Z","risks":"","statusTweet":"03/11: Adding server side routes for redirect, encrypt/decrypt","changedDate":"2026-03-11","assignedTo":"Dmitry Lesnoy"},
+  {"riskCount":3,"title":"Approvals app templates, list view supported in Workflows app","priority":2,"state":"Proposed","tags":"Workflows","daysSinceUpdate":65,"type":"Feature","shiproom":"Green","id":4797975,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-01-09","assignedTo":"Loki Meyburg"},
+  {"riskCount":0,"title":"[Android] Run workflows from a shared link on Android","priority":2,"state":"Active","tags":"H1CY26; MAI; MobPlatBuild2026; MobPlatBuild2026_Design; SplCldsParityGap; UX_MobilePlatform; WinVSlack; WinVsSlack_IDC_WF_Mobile; Workflows","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":4939417,"committed":"Committed","targetDate":"2026-03-30T07:00:00Z","risks":"","statusTweet":"Had multiple dev discussions with desktop engg POC to gain clarity and resolve open questions. Currently waiting for sample shareable link and composeExtension/queryLink invoke call support by workflows bot for link unfurling. ","changedDate":"2026-03-16","assignedTo":"MANPREET SINGH"},
+  {"riskCount":1,"title":"[iOS] Shared environment for teams to enable collaborative workflows on mobile [Validation]","priority":2,"state":"Proposed","tags":"H1CY26; MAI; SplCldsParityGap; WinVsSlack; WinVsSlack_IDC_WF_Mobile; Workflows","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":4939536,"committed":"Committed","targetDate":"2026-03-30T07:00:00Z","risks":"proposed","statusTweet":"3/12: This verification item is dependent on work item 4772552. The desktop team is actively working on the dependency, and we will proceed with verification once their work is completed.","changedDate":"2026-03-16","assignedTo":"Abhishek Gupta"},
+  {"riskCount":3,"title":"[Trigger from a link] Run workflow with owner credentials (Phase 1)","priority":2,"state":"Proposed","tags":null,"daysSinceUpdate":20,"type":"Feature","shiproom":"Green","id":5181948,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-23","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"[Trigger from a link] Run workflow with runner credentials (Phase 2)","priority":2,"state":"Proposed","tags":null,"daysSinceUpdate":20,"type":"Feature","shiproom":"Green","id":5181951,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-23","assignedTo":"Tony Han"},
+  {"riskCount":2,"title":"Form builder during create for users to use during run experiences","priority":2,"state":"Proposed","tags":"C1Cut; Connector; Design Needed; FY26H2AbovePMCutline; FY26H2WorkflowItems; H1Track; MAI; Need Mobile; OnePagerNeeded; PlatWinSlack; primitives; RunExperience; SplCldsException; SplCldsParityGap; WinVsSlack; Workflows; WorkflowsC1","daysSinceUpdate":4,"type":"Feature","shiproom":"Orange","id":4844119,"committed":"Committed","targetDate":"2026-04-13T07:00:00Z","risks":"proposed,shiproom","statusTweet":"POC is yet to begin which will derive the target dates","changedDate":"2026-03-11","assignedTo":"Dmitry Lesnoy"},
+  {"riskCount":1,"title":"[Android] Support for rich text editor in form","priority":2,"state":"Proposed","tags":"H1CY26; MAI; SplCldsException; SplCldsParityGap; WinVsSlack; WinVsSlack_IDC_WF_Mobile; Workflows","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":4939430,"committed":"Committed","targetDate":"2026-04-30T07:00:00Z","risks":"proposed","statusTweet":"1. This feature item is dependent on 4844119. 2. There's still no proper product spec available with the requirements. 3. Hence, putting tentative dates for now.","changedDate":"2026-03-16","assignedTo":"MANPREET SINGH"},
+  {"riskCount":1,"title":"[iOS] Support for rich text editor in form","priority":2,"state":"Proposed","tags":"H1CY26; MAI; SplCldsException; SplCldsParityGap; WinVsSlack; WinVsSlack_IDC_WF_Mobile; Workflows","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":4939433,"committed":"Committed","targetDate":"2026-04-30T07:00:00Z","risks":"proposed","statusTweet":"1. This feature item is dependent on 4844119. 2. There's still no proper product spec available with the requirements. 3. Hence, putting tentative dates for now.","changedDate":"2026-03-16","assignedTo":"Abhishek Gupta"},
+  {"riskCount":0,"title":"Support Rich text: Updated text box component for BFS and Templates (Enable @ mentions)","priority":2,"state":"Active","tags":"FY26H2WorkflowItems; MAI; PlatWinSlack; WinVsSlack","daysSinceUpdate":2,"type":"Feature","shiproom":"Green","id":5033856,"committed":"Committed","targetDate":"2026-03-17T07:00:00Z","risks":"","statusTweet":"03/10 - PRs merged. PR in progress for adding variable references.","changedDate":"2026-03-13","assignedTo":"Raksha Kashyap"},
+  {"riskCount":2,"title":"[Win vs Slack] Team Actions: Channel Lifecycle (FY26H2)","priority":2,"state":"Proposed","tags":"H1Track; MAI; PlatWinSlack; SplCldsParityGap; Team Connector; WinVsSlack; WinVsSlack-LT_tracking; Workflows","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":5073109,"committed":"Committed","targetDate":"2026-05-04T07:00:00Z","risks":"proposed,stale","statusTweet":"02/17: Evaluating dependencies with TACO and Graph team to understand what behaviors are supported.","changedDate":"2026-03-03","assignedTo":"Tony Han"},
+  {"riskCount":1,"title":"[Teams Action+BFS]: Add member to a shared channel","priority":2,"state":"Active","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; Spec to review; SplCldsParityGap; Team Connector; Workflows; WorkflowsC1","daysSinceUpdate":10,"type":"Feature","shiproom":"Green","id":4878044,"committed":"Committed","targetDate":"2026-03-06T08:00:00Z","risks":"stale","statusTweet":"Building BFS","changedDate":"2026-03-06","assignedTo":"Adrian Solis (TEAMS)"},
+  {"riskCount":2,"title":"[Teams trigger + BFS] When user joins a shared/private channel","priority":2,"state":"Blocked","tags":"BFS; Connector; FY26H2AbovePMCutline; primitives; SplCldsParityGap; Team Connector; WorkflowsC1","daysSinceUpdate":10,"type":"Feature","shiproom":"Green","id":4931381,"committed":"Committed","targetDate":null,"risks":"blocked,stale","statusTweet":null,"changedDate":"2026-03-05","assignedTo":"Osheen Khare"},
+  {"riskCount":1,"title":"[Teams Action + BFS] Archive a channel","priority":2,"state":"Proposed","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; primitives; SplCldsParityGap; Team Connector; WorkflowsC1","daysSinceUpdate":5,"type":"Feature","shiproom":"Green","id":4931386,"committed":"Committed","targetDate":null,"risks":"proposed","statusTweet":null,"changedDate":"2026-03-11","assignedTo":"Osheen Khare"},
+  {"riskCount":2,"title":"[Teams Action + BFS]: Update channel descriptions","priority":2,"state":"Proposed","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; primitives; SplCldsParityGap; Team Connector; WorkflowsC1","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":4931393,"committed":"Committed","targetDate":null,"risks":"proposed,stale","statusTweet":null,"changedDate":"2026-03-03","assignedTo":"Osheen Khare"},
+  {"riskCount":3,"title":"Support channel discovery among channel audience","priority":2,"state":"Proposed","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; TFW_SLACK; WorkflowsC1","daysSinceUpdate":33,"type":"Feature","shiproom":"Green","id":4984654,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-10","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Sync Channel Membership With an M365 Group","priority":2,"state":"Proposed","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; TFW_SLACK; WorkflowsC1","daysSinceUpdate":33,"type":"Feature","shiproom":"Green","id":4984692,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-10","assignedTo":"Tony Han"},
+  {"riskCount":1,"title":"[Teams Action+BFS] Show channels for specified users","priority":2,"state":"Proposed","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; Need Graph API; SplCldsParityGap; Team Connector; WorkflowsC1","daysSinceUpdate":5,"type":"Feature","shiproom":"Green","id":4985035,"committed":"Committed","targetDate":null,"risks":"proposed","statusTweet":null,"changedDate":"2026-03-11","assignedTo":"Osheen Khare"},
+  {"riskCount":3,"title":"[Teams Trigger+BFS]: When a member is added to a Teams tag","priority":2,"state":"Proposed","tags":"BFS; Connector; FY26H2WorkflowItems; Need Graph API; Team Connector","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":5036075,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-03-03","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"[Teams Action + BFS] Create a section","priority":2,"state":"Proposed","tags":"BFS; Connector; FY26H2WorkflowItems; Need Graph API; Team Connector","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":5068377,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-03-03","assignedTo":"Tony Han"},
+  {"riskCount":2,"title":"[Teams Action+BFS]: Remove member from a shared/private channel","priority":2,"state":"Proposed","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; Spec to review; SplCldsParityGap; Team Connector; Workflows; WorkflowsC1","daysSinceUpdate":5,"type":"Feature","shiproom":"Green","id":5149335,"committed":"Proposed","targetDate":null,"risks":"proposed,uncommitted","statusTweet":null,"changedDate":"2026-03-11","assignedTo":"Osheen Khare"},
+  {"riskCount":1,"title":"[Win vs Slack] [Android] Team Actions: Channel Lifecycle (FY26H2) - validation","priority":2,"state":"Proposed","tags":"Android; MAI; SplCldsParityGap; Team Connector; WinVsSlack; WinVsSlack-LT_tracking; Workflows","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":5169227,"committed":"Committed","targetDate":"2026-05-11T07:00:00Z","risks":"proposed","statusTweet":"This verification item is dependent on work item 5073109. Would continue with the validation post the completion of this dependent item.","changedDate":"2026-03-16","assignedTo":"MANPREET SINGH"},
+  {"riskCount":1,"title":"[Win vs Slack] [iOS] Team Actions: Channel Lifecycle (FY26H2)  - validation","priority":2,"state":"Proposed","tags":"Android; MAI; SplCldsParityGap; Team Connector; WinVsSlack; WinVsSlack-LT_tracking; Workflows","daysSinceUpdate":0,"type":"Feature","shiproom":"Green","id":5169254,"committed":"Committed","targetDate":"2026-05-11T07:00:00Z","risks":"proposed","statusTweet":"3/12: This verification item is dependent on work item 5073109. The desktop team is currently evaluating dependencies on their side.","changedDate":"2026-03-16","assignedTo":"Abhishek Gupta"},
+  {"riskCount":2,"title":"[Win vs Slack] 3P connectors for DevOps & Proj. Mgmt. (Linear, Jenkins, Datadog, etc.) (FY26H2)","priority":2,"state":"Blocked","tags":"MAI; PlatWinSlack; WinVsSlack; WinVsSlack-LT_tracking; Workflows","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":5073113,"committed":"Hard Cut","targetDate":null,"risks":"blocked,stale","statusTweet":"Not funded for H1","changedDate":"2026-03-03","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"[AgentFlows integration] All 3P connectors available with a Copilot license (instead of an additional premium license)","priority":2,"state":"Proposed","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; Workflows; WorkflowsC1","daysSinceUpdate":61,"type":"Feature","shiproom":"Green","id":4791501,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-01-13","assignedTo":"Loki Meyburg"},
+  {"riskCount":2,"title":"Linear connector and templates","priority":2,"state":"Proposed","tags":"3P; Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":4846408,"committed":"Targeted","targetDate":null,"risks":"proposed,stale","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Connor Rodewald"},
+  {"riskCount":3,"title":"Build new and validate existing 3p connectors","priority":2,"state":"Proposed","tags":"1p connector; 3P","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":4910176,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"[GitHub connector] Allow use to select a repo from the dropdown","priority":2,"state":"Proposed","tags":"3P","daysSinceUpdate":39,"type":"Feature","shiproom":"Green","id":5072547,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-04","assignedTo":"Tony Han"},
+  {"riskCount":1,"title":"[Win vs Slack] Linear - 3P Agent for DevOps & Proj. Mgmt. (FY26H2)","priority":2,"state":"Proposed","tags":"MAI; PlatWinSlack; WinVsSlack; WinVsSlack-LT_tracking","daysSinceUpdate":5,"type":"Feature","shiproom":"Green","id":5170796,"committed":"Committed","targetDate":null,"risks":"proposed","statusTweet":"external 3p ISV building an app for teams - No R0-R3.6 dates","changedDate":"2026-03-10","assignedTo":"Carter Gilliam"},
+  {"riskCount":3,"title":"Validate ServiceNow Connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186370,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Validate PagerDuty connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186372,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Validate Jira connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186375,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Build Datadog connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186376,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Build Jenkins connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186377,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Validate GitHub connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186379,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Build Confluence connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186381,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"Build Notion connector","priority":2,"state":"Proposed","tags":"Connector","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":5186382,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":2,"title":"[Win vs Slack] Ability to trigger message context/compose box workflows in Workflows 2.0","priority":2,"state":"Proposed","tags":"CreateDesReqPlatform; Design Needed; DesReqPlatformCreated; MAI; Need Mobile; PlatWinSlack; RunExperience; SplCldsParityGap; WinVsSlack; WorkflowsC1","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":5079700,"committed":"Committed","targetDate":"2026-04-10T07:00:00Z","risks":"proposed,stale","statusTweet":"Ready to pick up after Workflows GA, R0/R2/R4 target dates expected 1st week of Feb","changedDate":"2026-03-03","assignedTo":"Aditya Lele"},
+  {"riskCount":3,"title":"File workflows (view + run)","priority":2,"state":"Proposed","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; Neptune_PostGA; OnePagerNeeded; RunExperience; WorkflowsC1; WorkflowsCY25Q4","daysSinceUpdate":48,"type":"Feature","shiproom":"Green","id":4840131,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-01-26","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"MA In-Context Run Experience","priority":2,"state":"Proposed","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; OnePagerNeeded; RunExperience; WorkflowsC1","daysSinceUpdate":19,"type":"Feature","shiproom":"Green","id":4844115,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-02-24","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"ME In-Context Run Experience","priority":2,"state":"Proposed","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; OnePagerNeeded; RunExperience; WorkflowsC1","daysSinceUpdate":48,"type":"Feature","shiproom":"Green","id":4844116,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":null,"changedDate":"2026-01-26","assignedTo":"Tony Han"},
+  {"riskCount":3,"title":"[Win vs Slack] Workflows manual trigger (File) experience improvements","priority":2,"state":"Proposed","tags":"CreateDesReqPlatform; Design Needed; DesReqPlatformCreated; Need Mobile; RunExperience; SplCldsParityGap; WorkflowsC1","daysSinceUpdate":12,"type":"Feature","shiproom":"Green","id":5197111,"committed":"Proposed","targetDate":null,"risks":"proposed,stale,uncommitted","statusTweet":"Ready to pick up after Workflows GA, R0/R2/R4 target dates expected 1st week of Feb","changedDate":"2026-03-03","assignedTo":"Aditya Lele"}
+];
+
+const ADO_BASE = 'https://dev.azure.com/domoreexp/MSTeams/_workitems/edit/';
+
+const COLUMNS = [
+  { key: 'riskLevel', label: 'Risk', sortKey: d => d.riskCount },
+  { key: 'id', label: 'ID', sortKey: d => d.id },
+  { key: 'title', label: 'Title', sortKey: d => d.title.toLowerCase() },
+  { key: 'state', label: 'State', sortKey: d => d.state },
+  { key: 'priority', label: 'Pri', sortKey: d => d.priority },
+  { key: 'committed', label: 'Committed', sortKey: d => d.committed || '' },
+  { key: 'shiproom', label: 'Shiproom', sortKey: d => d.shiproom || '' },
+  { key: 'assignedTo', label: 'Owner', sortKey: d => (d.assignedTo || '').toLowerCase() },
+  { key: 'daysSinceUpdate', label: 'Days Stale', sortKey: d => d.daysSinceUpdate },
+  { key: 'statusTweet', label: 'Status Tweet', sortKey: d => (d.statusTweet || '').toLowerCase() },
+  { key: 'risks', label: 'Risk Signals', sortKey: d => d.riskCount }
+];
+
+let currentFilter = 'all';
+let sortCol = 0;
+let sortAsc = false; // default descending for risk
+
+function riskLevel(d) {
+  if (d.riskCount >= 2) return 'high';
+  if (d.riskCount === 1) return 'medium';
+  return 'low';
+}
+
+function riskIcon(d) {
+  const l = riskLevel(d);
+  if (l === 'high') return '🔴';
+  if (l === 'medium') return '🟡';
+  return '🟢';
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderSummary() {
+  const total = DATA.length;
+  const high = DATA.filter(d => d.riskCount >= 2).length;
+  const med = DATA.filter(d => d.riskCount === 1).length;
+  const low = DATA.filter(d => d.riskCount === 0).length;
+  const blocked = DATA.filter(d => d.state === 'Blocked').length;
+  const stale = DATA.filter(d => d.daysSinceUpdate >= 7).length;
+
+  const cards = [
+    { value: total, label: 'Total Features', cls: '' },
+    { value: high, label: '🔴 High Risk (2+)', cls: 'high' },
+    { value: med, label: '🟡 Medium Risk (1)', cls: 'medium' },
+    { value: low, label: '🟢 Low Risk (0)', cls: 'low' },
+    { value: blocked, label: 'Blocked', cls: 'blocked' },
+    { value: stale, label: 'Stale (7+ days)', cls: 'stale' }
+  ];
+
+  document.getElementById('summaryRow').innerHTML = cards.map(c =>
+    `<div class="card ${c.cls}"><div class="card-value">${c.value}</div><div class="card-label">${c.label}</div></div>`
+  ).join('');
+}
+
+function filterData() {
+  return DATA.filter(d => {
+    if (currentFilter === 'all') return true;
+    if (currentFilter === 'high') return d.riskCount >= 2;
+    if (currentFilter === 'medium') return d.riskCount === 1;
+    if (currentFilter === 'blocked') return d.state === 'Blocked';
+    if (currentFilter === 'stale') return d.daysSinceUpdate >= 7;
+    if (currentFilter === 'proposed') return d.state === 'Proposed';
+    if (currentFilter === 'uncommitted') return d.committed === 'Proposed';
+    return true;
+  });
+}
+
+function sortData(data) {
+  const col = COLUMNS[sortCol];
+  const fn = col.sortKey;
+  return [...data].sort((a, b) => {
+    let va = fn(a), vb = fn(b);
+    if (typeof va === 'string') {
+      const cmp = va.localeCompare(vb);
+      return sortAsc ? cmp : -cmp;
+    }
+    return sortAsc ? va - vb : vb - va;
+  });
+}
+
+function renderHeaders() {
+  const tr = document.getElementById('headerRow');
+  tr.innerHTML = COLUMNS.map((col, i) => {
+    const arrow = i === sortCol ? (sortAsc ? '▲' : '▼') : '⇅';
+    const cls = i === sortCol ? 'sorted' : '';
+    return `<th class="${cls}" onclick="onSort(${i})">${col.label} <span class="sort-arrow">${arrow}</span></th>`;
+  }).join('');
+}
+
+function renderRiskSignals(risks) {
+  if (!risks) return '';
+  return risks.split(',').filter(Boolean).map(r =>
+    `<span class="risk-signal signal-${r}">${r}</span>`
+  ).join('');
+}
+
+function renderRow(d) {
+  const level = riskLevel(d);
+  const committedCls = d.committed === 'Hard Cut' ? 'HardCut' : (d.committed || '');
+  const daysCls = d.daysSinceUpdate >= 14 ? 'days-red' : d.daysSinceUpdate >= 7 ? 'days-orange' : '';
+  const tweet = d.statusTweet
+    ? `<span class="tweet-cell">${escHtml(d.statusTweet)}</span>`
+    : `<span class="tweet-cell empty">—</span>`;
+
+  return `<tr class="risk-${level}">
+    <td><span class="risk-icon">${riskIcon(d)}</span></td>
+    <td><a href="${ADO_BASE}${d.id}" target="_blank">${d.id}</a></td>
+    <td class="title-cell">${escHtml(d.title)}</td>
+    <td><span class="state-badge state-${d.state}">${d.state}</span></td>
+    <td><span class="priority-${d.priority}">P${d.priority}</span></td>
+    <td><span class="committed-badge committed-${committedCls}">${escHtml(d.committed)}</span></td>
+    <td><span class="shiproom-dot shiproom-${d.shiproom || 'Green'}"></span></td>
+    <td class="owner-cell">${escHtml(d.assignedTo)}</td>
+    <td class="${daysCls}">${d.daysSinceUpdate}d</td>
+    <td>${tweet}</td>
+    <td>${renderRiskSignals(d.risks)}</td>
+  </tr>`;
+}
+
+function renderTable() {
+  const filtered = filterData();
+  const sorted = sortData(filtered);
+  document.getElementById('tableBody').innerHTML = sorted.map(renderRow).join('');
+  document.getElementById('filterCount').textContent = `Showing ${sorted.length} of ${DATA.length}`;
+}
+
+function onSort(colIndex) {
+  if (sortCol === colIndex) {
+    sortAsc = !sortAsc;
+  } else {
+    sortCol = colIndex;
+    sortAsc = true;
+  }
+  renderHeaders();
+  renderTable();
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTable();
+  });
+});
+
+// Initial render
+renderSummary();
+renderHeaders();
+renderTable();
+</script>
+</body>
+</html>
