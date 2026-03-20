@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A365 Execution Risk Dashboard</title>
+<title>Platform Win vs Slack Dashboard</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;--bg4:#1c2541;
-  --fg:#e0e0e0;--fg2:#a0a0b8;--accent:#00d4ff;--accent2:#7b2ff7;
-  --red:#ff4757;--orange:#ffa502;--yellow:#ffd32a;--green:#2ed573;--purple:#a55eea;--blue:#3498db;
-  --row-hover:#1e2a4a;--modified:#3a3520;--border:#2a2a4a;
-  --tile-bg:#1e2a3a;--tile-hover:#253350;
+  --bg:#f5f6fa;--bg2:#ffffff;--bg3:#e8eaf0;--bg4:#ffffff;
+  --fg:#1a1a2e;--fg2:#5a5a7a;--accent:#2563eb;--accent2:#7b2ff7;
+  --red:#dc2626;--orange:#ea580c;--yellow:#ca8a04;--green:#16a34a;--purple:#7c3aed;--blue:#2563eb;
+  --row-hover:#f0f4ff;--modified:#fef9c3;--border:#e0e0e0;
+  --tile-bg:#ffffff;--tile-hover:#f0f4ff;
   --transition:0.2s ease;
 }
 html{font-size:13px}
@@ -19,120 +19,127 @@ body{background:var(--bg);color:var(--fg);font-family:'Segoe UI',system-ui,-appl
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* ─── Header ─── */
-.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.header-left h1{font-size:1.4rem;font-weight:600;color:#fff}
+/* Header */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.header-left h1{font-size:1.4rem;font-weight:600;color:var(--fg)}
 .header-left .subtitle{font-size:0.85rem;color:var(--fg2)}
 .header-right{display:flex;align-items:center;gap:12px}
 .save-btn{background:var(--accent2);color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:none;align-items:center;gap:6px;transition:var(--transition)}
-.save-btn:hover{filter:brightness(1.2)}
-.save-btn .badge{background:var(--red);border-radius:50%;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem}
+.save-btn:hover{filter:brightness(1.1)}
+.save-btn .badge{background:var(--red);color:#fff;border-radius:50%;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem}
 .query-link{font-size:0.8rem;color:var(--accent);opacity:0.8}
 
-/* ─── Summary Tiles ─── */
+/* Summary Tiles */
 .tiles{display:flex;gap:12px;padding:16px 24px;flex-wrap:wrap}
-.tile{background:var(--tile-bg);border:1px solid var(--border);border-radius:10px;padding:14px 20px;min-width:120px;cursor:pointer;transition:var(--transition);user-select:none;flex:1;text-align:center}
-.tile:hover{background:var(--tile-hover);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.3)}
-.tile.active{border-color:var(--accent);box-shadow:0 0 12px rgba(0,212,255,0.3)}
+.tile{background:var(--tile-bg);border:1px solid var(--border);border-radius:10px;padding:14px 20px;min-width:120px;cursor:pointer;transition:var(--transition);user-select:none;flex:1;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.tile:hover{background:var(--tile-hover);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.tile.active{border-color:var(--accent);box-shadow:0 0 12px rgba(37,99,235,0.2)}
 .tile .count{font-size:1.8rem;font-weight:700;line-height:1}
 .tile .label{font-size:0.75rem;color:var(--fg2);margin-top:4px;white-space:nowrap}
 .tile.total .count{color:var(--accent)}
-.tile.high .count{color:var(--red)}
-.tile.medium .count{color:var(--orange)}
-.tile.low .count{color:var(--green)}
+.tile.green .count{color:var(--green)}
+.tile.orange .count{color:var(--orange)}
+.tile.red .count{color:var(--red)}
+.tile.gray .count{color:#999}
 .tile.blocked .count{color:var(--red)}
 .tile.stale .count{color:var(--orange)}
 .tile.r0miss .count{color:var(--yellow)}
 .tile.r0over .count{color:var(--red)}
 
-/* ─── Filters Bar ─── */
+/* Filters Bar */
 .filters{display:flex;gap:12px;padding:8px 24px 12px;align-items:center;flex-wrap:wrap}
-.search-box{background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--fg);font-size:0.85rem;width:280px;outline:none;transition:var(--transition)}
+.search-box{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--fg);font-size:0.85rem;width:280px;outline:none;transition:var(--transition)}
 .search-box:focus{border-color:var(--accent)}
 .search-box::placeholder{color:var(--fg2)}
-.area-select{background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--fg);font-size:0.85rem;outline:none;cursor:pointer;min-width:220px}
-.area-select option{background:var(--bg4);color:var(--fg)}
+.area-select{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--fg);font-size:0.85rem;outline:none;cursor:pointer;min-width:220px}
+.area-select option{background:var(--bg2);color:var(--fg)}
 .area-select:focus{border-color:var(--accent)}
 .filter-label{font-size:0.8rem;color:var(--fg2)}
-.btn-small{background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:6px 14px;color:var(--fg);font-size:0.8rem;cursor:pointer;transition:var(--transition)}
+.btn-small{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;color:var(--fg);font-size:0.8rem;cursor:pointer;transition:var(--transition)}
 .btn-small:hover{border-color:var(--accent);color:var(--accent)}
 
-/* ─── Table ─── */
+/* Table */
 .table-wrap{flex:1;overflow-x:auto;padding:0 24px 24px}
 table{width:100%;border-collapse:collapse;table-layout:auto}
 thead{position:sticky;top:0;z-index:10}
-thead th{background:var(--bg2);color:var(--fg2);font-weight:600;font-size:0.76rem;text-transform:uppercase;letter-spacing:0.5px;padding:10px 8px;text-align:left;border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;transition:var(--transition)}
+thead th{background:var(--bg3);color:var(--fg2);font-weight:600;font-size:0.76rem;text-transform:uppercase;letter-spacing:0.5px;padding:10px 8px;text-align:left;border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap;transition:var(--transition)}
 thead th:hover{color:var(--accent)}
 thead th .sa{margin-left:4px;font-size:0.65rem;opacity:0.4}
 thead th.sorted .sa{opacity:1;color:var(--accent)}
-tbody tr{border-bottom:1px solid rgba(42,42,74,0.5);transition:background var(--transition)}
+tbody tr{border-bottom:1px solid var(--border);transition:background var(--transition)}
 tbody tr:hover{background:var(--row-hover)}
 tbody tr.mod{background:var(--modified)!important}
-tbody tr.feat{font-weight:600}
-tbody tr.task{font-weight:400;color:var(--fg2)}
 tbody tr.hid{display:none}
 td{padding:7px 8px;font-size:0.82rem;vertical-align:middle;white-space:nowrap}
-td.tc{white-space:normal;max-width:340px;min-width:180px}
+td.tc{white-space:normal;max-width:420px;min-width:220px;font-weight:500}
 td.tw{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help;position:relative}
-td.tw .tw-full{display:none;position:absolute;left:0;top:100%;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:8px 12px;z-index:20;white-space:normal;max-width:400px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.5);font-weight:400;color:var(--fg)}
+td.tw .tw-full{display:none;position:absolute;left:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;z-index:20;white-space:normal;max-width:400px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.12);font-weight:400;color:var(--fg)}
 td.tw:hover .tw-full{display:block}
 
-/* ─── Tree visual ─── */
-.tree-toggle{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:0.7rem;border-radius:4px;transition:var(--transition);color:var(--fg2);background:transparent;border:none;flex-shrink:0}
-.tree-toggle:hover{background:rgba(255,255,255,0.1);color:var(--accent)}
-.tree-indent{display:inline-flex;align-items:center;padding-left:12px;margin-left:10px;border-left:2px solid var(--border);height:100%;min-height:16px}
-.child-badge{font-size:0.65rem;background:var(--bg3);color:var(--fg2);padding:1px 7px;border-radius:8px;margin-left:6px;font-weight:400}
-
-/* ─── Badges ─── */
+/* Badges */
 .sb{padding:2px 8px;border-radius:4px;font-size:0.72rem;font-weight:600;display:inline-block}
-.sb.Active{background:rgba(52,152,219,0.2);color:var(--blue)}
-.sb.Proposed{background:rgba(255,165,2,0.2);color:var(--orange)}
-.sb.Blocked{background:rgba(255,71,87,0.2);color:var(--red)}
-.sb.RollingOut{background:rgba(46,213,115,0.2);color:var(--green)}
-.sb.Resolved{background:rgba(165,94,234,0.15);color:var(--purple)}
-.sb.Closed{background:rgba(160,160,184,0.15);color:var(--fg2)}
+.sb.Active{background:rgba(37,99,235,0.1);color:var(--blue)}
+.sb.Proposed{background:rgba(234,88,12,0.1);color:var(--orange)}
+.sb.Blocked{background:rgba(220,38,38,0.1);color:var(--red)}
+.sb.RollingOut{background:rgba(22,163,74,0.1);color:var(--green)}
+.sb.Resolved{background:rgba(124,58,237,0.1);color:var(--purple)}
+.sb.Closed{background:rgba(90,90,122,0.1);color:var(--fg2)}
 .pb{font-weight:700;font-size:0.78rem}.pb.p1{color:var(--red)}.pb.p2{color:var(--orange)}.pb.p3{color:var(--fg2)}
 .cb{padding:2px 7px;border-radius:4px;font-size:0.7rem;font-weight:600;display:inline-block}
-.cb.Committed{background:rgba(46,213,115,0.2);color:var(--green)}
-.cb.Targeted{background:rgba(255,211,42,0.2);color:var(--yellow)}
-.cb.Proposed{background:rgba(255,71,87,0.2);color:var(--red)}
-.cb.HardCut{background:rgba(165,94,234,0.2);color:var(--purple)}
+.cb.Committed{background:rgba(22,163,74,0.1);color:var(--green)}
+.cb.Targeted{background:rgba(202,138,4,0.15);color:var(--yellow)}
+.cb.Proposed{background:rgba(220,38,38,0.1);color:var(--red)}
+.cb.HardCut{background:rgba(124,58,237,0.1);color:var(--purple)}
 .sd{width:12px;height:12px;border-radius:50%;display:inline-block;vertical-align:middle}
-.sd.Green{background:var(--green)}.sd.Orange{background:var(--orange)}
+.sd.Green{background:var(--green)}.sd.Orange{background:var(--orange)}.sd.Red{background:var(--red)}.sd.Gray{background:#999}
 .db{font-weight:600;font-size:0.78rem}.db.crit{color:var(--red)}.db.warn{color:var(--orange)}.db.ok{color:var(--fg2)}
 .rt{padding:1px 6px;border-radius:3px;font-size:0.65rem;margin:1px 2px;display:inline-block;white-space:nowrap}
-.rt.blocked{background:rgba(255,71,87,0.2);color:var(--red)}
-.rt.stale{background:rgba(255,165,2,0.2);color:var(--orange)}
-.rt.proposed{background:rgba(255,165,2,0.15);color:var(--orange)}
-.rt.uncommitted{background:rgba(255,211,42,0.2);color:var(--yellow)}
-.rt.shiproom{background:rgba(255,165,2,0.2);color:var(--orange)}
-.rt.r0-overdue{background:rgba(255,71,87,0.25);color:var(--red)}
-.rt.r4-overdue{background:rgba(255,71,87,0.2);color:var(--red)}
-.rt.r0-missing{background:rgba(255,211,42,0.2);color:var(--yellow)}
+.rt.blocked{background:rgba(220,38,38,0.1);color:var(--red)}
+.rt.stale{background:rgba(234,88,12,0.1);color:var(--orange)}
+.rt.proposed{background:rgba(234,88,12,0.08);color:var(--orange)}
+.rt.uncommitted{background:rgba(202,138,4,0.12);color:var(--yellow)}
+.rt.shiproom{background:rgba(234,88,12,0.1);color:var(--orange)}
+.rt.r0-overdue{background:rgba(220,38,38,0.12);color:var(--red)}
+.rt.r4-overdue{background:rgba(220,38,38,0.1);color:var(--red)}
+.rt.r0-missing{background:rgba(202,138,4,0.12);color:var(--yellow)}
 .dc{font-size:0.78rem}.dc.overdue{color:var(--red);font-weight:600}.dc.missing{color:var(--yellow);font-style:italic}
 
-/* ─── Editable ─── */
+/* Editable */
 .ed{cursor:pointer;border-radius:3px;padding:1px 4px;transition:var(--transition);display:inline-block}
-.ed:hover{background:rgba(255,255,255,0.06);outline:1px dashed rgba(255,255,255,0.15)}
-.ei{background:var(--bg4);border:1px solid var(--accent);border-radius:4px;color:var(--fg);padding:4px 6px;font-size:0.8rem;font-family:inherit;outline:none;width:100%}
-.ei:focus{box-shadow:0 0 6px rgba(0,212,255,0.3)}
+.ed:hover{background:rgba(0,0,0,0.04);outline:1px dashed rgba(0,0,0,0.15)}
+.ei{background:var(--bg2);border:1px solid var(--accent);border-radius:4px;color:var(--fg);padding:4px 6px;font-size:0.8rem;font-family:inherit;outline:none;width:100%}
+.ei:focus{box-shadow:0 0 6px rgba(37,99,235,0.2)}
 textarea.ei{resize:vertical;min-height:60px}
 select.ei{cursor:pointer}
 
-/* ─── Toast ─── */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#111;padding:12px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;opacity:0;transform:translateY(20px);transition:all 0.3s ease;z-index:1000;pointer-events:none}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;font-size:0.85rem;opacity:0;transform:translateY(20px);transition:all 0.3s ease;z-index:1000;pointer-events:none}
 .toast.show{opacity:1;transform:translateY(0)}
 
-/* ─── Footer ─── */
+/* Footer */
 .footer{background:var(--bg2);border-top:1px solid var(--border);padding:12px 24px;text-align:center;font-size:0.75rem;color:var(--fg2)}
 
-/* ─── Loading ─── */
+/* Loading */
 .ld{display:flex;align-items:center;justify-content:center;height:300px;font-size:1.1rem;color:var(--fg2)}
 .ld .sp{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-right:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .nr{text-align:center;padding:60px 20px;color:var(--fg2);font-size:1rem}
 
-/* ─── Responsive ─── */
+/* Tree View */
+.uber-row{background:linear-gradient(to right,#eef1f8,#f5f6fa);font-weight:600;border-bottom:2px solid var(--border)}
+.uber-row td{font-size:0.88rem;padding:10px 8px}
+.uber-row:hover{background:linear-gradient(to right,#e4e8f4,#eef1f8)!important}
+.child-row td{padding-top:5px;padding-bottom:5px}
+.tree-indent{color:var(--fg2);margin-right:6px;font-family:'Cascadia Code','Consolas',monospace;font-size:0.8rem;opacity:0.5}
+.toggle-btn{cursor:pointer;user-select:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;min-width:28px;border-radius:6px;background:#e3f2fd;border:1px solid #90caf9;font-size:20px;color:#1565c0;transition:var(--transition);line-height:1}
+.toggle-btn:hover{background:#bbdefb;color:#0d47a1;border-color:#64b5f6}
+.toggle-col{width:44px;min-width:44px;max-width:44px;text-align:center;padding:4px 8px!important}
+.child-badge{background:rgba(37,99,235,0.1);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;margin-left:8px;white-space:nowrap}
+.type-badge{padding:1px 6px;border-radius:3px;font-size:0.68rem;font-weight:600;display:inline-block}
+.type-badge.Feature{background:rgba(37,99,235,0.08);color:var(--blue)}
+.type-badge.Task{background:rgba(124,58,237,0.08);color:var(--purple)}
+
+/* Responsive */
 @media(max-width:1200px){.tiles{gap:8px}.tile{min-width:90px;padding:10px 12px}.tile .count{font-size:1.4rem}}
 @media(max-width:768px){.tiles{flex-wrap:wrap}.tile{flex:0 0 calc(25% - 8px)}.filters{flex-direction:column;align-items:stretch}.search-box,.area-select{width:100%}}
 </style>
@@ -142,8 +149,8 @@ select.ei{cursor:pointer}
 <!-- Header -->
 <div class="header">
   <div class="header-left">
-    <h1>A365 Execution Risk Dashboard</h1>
-    <div class="subtitle">March 16, 2026 &mdash; <a class="query-link" href="https://dev.azure.com/domoreexp/MSTeams/_queries/query/ae438a24-5991-4ed8-a85d-0d48f01cc294" target="_blank">Open ADO Query ↗</a></div>
+    <h1>Platform Win vs Slack Dashboard</h1>
+    <div class="subtitle">March 16, 2026 &mdash; <a class="query-link" href="https://dev.azure.com/domoreexp/MSTeams/_queries/query/ae438a24-5991-4ed8-a85d-0d48f01cc294" target="_blank">Open ADO Query &#8599;</a></div>
   </div>
   <div class="header-right">
     <button class="save-btn" id="saveBtn" onclick="saveChanges()">&#128190; Save <span class="badge" id="saveBadge">0</span></button>
@@ -156,11 +163,11 @@ select.ei{cursor:pointer}
 <!-- Filters -->
 <div class="filters">
   <span class="filter-label">&#128269;</span>
-  <input type="text" class="search-box" id="searchBox" placeholder="Search title, owner, ID, tweet…" oninput="applyFilters()">
+  <input type="text" class="search-box" id="searchBox" placeholder="Search title, owner, ID, tweet&#8230;" oninput="applyFilters()">
   <span class="filter-label">Area:</span>
   <select class="area-select" id="areaSelect" onchange="applyFilters()"><option value="">All Area Paths</option></select>
-  <button class="btn-small" id="expandBtn" onclick="toggleExpandAll()">Expand All</button>
   <button class="btn-small" onclick="clearAllFilters()">Clear Filters</button>
+  <button class="btn-small" id="expandBtn" onclick="toggleAll()">Collapse All</button>
 </div>
 
 <!-- Table -->
@@ -180,19 +187,17 @@ select.ei{cursor:pointer}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
-   A365 Execution Risk Dashboard – All logic
-   ═══════════════════════════════════════════════════════════ */
+/* ======================================================
+   Platform Win vs Slack Dashboard - Hierarchical tree view
+   ====================================================== */
 
 const ADO = 'https://dev.azure.com/domoreexp/MSTeams/_workitems/edit/';
 
-// Column definitions
 const COLS = [
-  {k:'_exp',   l:'',              sort:0},
-  {k:'_risk',  l:'Risk',          sort:1},
+  {k:'title',  l:'Title',         sort:1, ed:'text'},
   {k:'id',     l:'ID',            sort:1},
   {k:'type',   l:'Type',          sort:1},
-  {k:'title',  l:'Title',         sort:1, ed:'text'},
+  {k:'_risk',  l:'Risk',          sort:1},
   {k:'state',  l:'State',         sort:1, ed:'select', opts:['Active','Proposed','Blocked','RollingOut','Resolved','Closed']},
   {k:'priority',l:'Pri',          sort:1, ed:'select', opts:['1','2','3']},
   {k:'committed',l:'Committed',   sort:1, ed:'select', opts:['Committed','Targeted','Proposed','Hard Cut']},
@@ -207,19 +212,49 @@ const COLS = [
 ];
 
 let DATA={items:[],relations:[]};
-let tree=[];                // [{item, children:[{item}]}]
-let expanded=new Set();
-let mods={};                // id->{field:val}
+let itemMap={};
+let uberIds=[];
+let childMap={};
+let expanded={};
+let features=[];
+let mods={};
 let activeTile=null;
 let sortK=null, sortD=1;
-let allExp=false;
 
-// ─── Boot ───
 // Embedded dashboard data (no fetch needed, works with file:// URLs)
 DATA = {"relations":[{"source":0,"target":3783618},{"source":3783618,"target":3962522},{"source":3783618,"target":3962526},{"source":3783618,"target":3962548},{"source":3783618,"target":3962549},{"source":3783618,"target":3962550},{"source":3783618,"target":3962551},{"source":3783618,"target":3962553},{"source":3783618,"target":3962554},{"source":3783618,"target":3962556},{"source":3783618,"target":3962558},{"source":3783618,"target":3962559},{"source":3783618,"target":3962560},{"source":3783618,"target":3962563},{"source":3783618,"target":3962564},{"source":3783618,"target":3962565},{"source":3783618,"target":3962567},{"source":3783618,"target":3962569},{"source":3783618,"target":3962570},{"source":3783618,"target":3962571},{"source":3783618,"target":3962574},{"source":3783618,"target":3962575},{"source":3783618,"target":3962578},{"source":3783618,"target":3962579},{"source":3783618,"target":3962580},{"source":3783618,"target":3962581},{"source":3783618,"target":4039031},{"source":3783618,"target":4059859},{"source":3783618,"target":4363109},{"source":3783618,"target":4425106},{"source":0,"target":4017239},{"source":4017239,"target":3468747},{"source":4017239,"target":4697902},{"source":4017239,"target":4840824},{"source":0,"target":4106950},{"source":4106950,"target":4105464},{"source":4106950,"target":4617513},{"source":4106950,"target":4800298},{"source":4106950,"target":4921327},{"source":0,"target":4772552},{"source":4772552,"target":4797975},{"source":4772552,"target":4939417},{"source":4772552,"target":4939417},{"source":4772552,"target":4939536},{"source":4772552,"target":5146589},{"source":4772552,"target":5181948},{"source":4772552,"target":5181951},{"source":4772552,"target":5185062},{"source":4772552,"target":5185063},{"source":4772552,"target":5201296},{"source":4772552,"target":5201299},{"source":4772552,"target":5201300},{"source":4772552,"target":5201305},{"source":0,"target":4844119},{"source":4844119,"target":4939430},{"source":4844119,"target":4939430},{"source":4844119,"target":4939433},{"source":0,"target":5033856},{"source":5033856,"target":5189693},{"source":5033856,"target":5189694},{"source":0,"target":5073109},{"source":5073109,"target":4878044},{"source":5073109,"target":4931381},{"source":5073109,"target":4931386},{"source":5073109,"target":4931393},{"source":5073109,"target":4984654},{"source":5073109,"target":4984692},{"source":5073109,"target":4985035},{"source":5073109,"target":5036075},{"source":5073109,"target":5068377},{"source":5073109,"target":5149335},{"source":5073109,"target":5169227},{"source":5073109,"target":5169254},{"source":0,"target":5073113},{"source":5073113,"target":4791501},{"source":5073113,"target":4846408},{"source":5073113,"target":4910176},{"source":5073113,"target":5072547},{"source":5073113,"target":5170796},{"source":5073113,"target":5186370},{"source":5073113,"target":5186372},{"source":5073113,"target":5186375},{"source":5073113,"target":5186376},{"source":5073113,"target":5186377},{"source":5073113,"target":5186379},{"source":5073113,"target":5186381},{"source":5073113,"target":5186382},{"source":0,"target":5079700},{"source":5079700,"target":4840131},{"source":5079700,"target":4844115},{"source":5079700,"target":4844116},{"source":5079700,"target":5174074},{"source":5079700,"target":5197111},{"source":5079700,"target":5203817},{"source":5079700,"target":5203818},{"source":5079700,"target":5203819},{"source":5079700,"target":5203821},{"source":0,"target":5170796},{"source":5170796,"target":5073113}],"items":[{"state":"Active","riskCount":0,"title":"[Platform] - Client UX + Manifest changes for Slash commands","shiproom":"Green","priority":1,"daysSinceUpdate":0,"risks":"","r4Date":"2026-05-29","areaPath":"MSTeams\\Platform\\Client Extensibility\\Messaging and Powerbar Extensions","tags":"AppsAgents; Consumer; Copilot; CY24H2; idc; KR06 Unicorn; MAI; OKRRMMay26; PartnerAsk; PlatWinSlack; PortedToMSETs; ProjectUnicorn; Semester:Dt; SplCldsParityGap; Strategic Bets; TargetedMessaging; TM_Phase1.5; Unicorn_IDC_FY26H1; WinVsSlack","type":"Feature","committed":"Committed","r0Date":"2026-03-23","assignedTo":"Ankit Saini","changedDate":"2026-03-16","id":3783618,"statusTweet":"Manifest PR is merged and App Validation Lib updates are complete. MT deployment to DF expected today 3/16."},{"state":"Active","riskCount":2,"title":"Improve compose slash command filter logic to filter based on PM spec","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Ruhi Joshi","changedDate":"2026-02-16","id":3962522,"statusTweet":null},{"state":"Active","riskCount":2,"title":"MT handling of App command usages","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Pratik Goel","changedDate":"2026-02-16","id":3962526,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Error handling","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962548,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Accessibility","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962549,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Livesite, Monitors","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962550,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Create/Update TSGs","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962551,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Perf Gate","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962553,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Memory Gate","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962554,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Automation 1: Validate if all commands are available in right order when user type \"/\" in compose. Validate it in Group Chat, 1on1 chat and channel","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Shishir Srivastava","changedDate":"2026-02-16","id":3962556,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Automation 2: Trigger an installed or context less command","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Shishir Srivastava","changedDate":"2026-02-16","id":3962558,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Automation 3: Trigger a command which need installation","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Shishir Srivastava","changedDate":"2026-02-16","id":3962559,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Bug bash R0","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962560,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Bugbash R1","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962563,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Bugbash R2","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962564,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Bugbash R3","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962565,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Bugbash R4","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962567,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"client Dashboards","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962569,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"MT Dashboard","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962570,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Global rediness check","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Shishir Srivastava","changedDate":"2026-02-16","id":3962571,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"TAP Review","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Himank Airon","changedDate":"2026-02-16","id":3962574,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"UX/Design review pass","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962575,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Rollout R1","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962578,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Rollout R2","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962579,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Rollout R3","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962580,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Rollout R4","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":3962581,"statusTweet":null},{"state":"Active","riskCount":2,"title":"Complete Pending TODOs","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Ruhi Joshi","changedDate":"2026-02-16","id":4039031,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Rendering of the slash commands in the compose box.","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Unicorn_IDC_SlashCommand","type":"Task","committed":null,"r0Date":"","assignedTo":"Bholaram Seervi","changedDate":"2026-02-16","id":4059859,"statusTweet":null},{"state":"Active","riskCount":2,"title":"a11y Review - Slash Commanding for Apps","shiproom":null,"priority":2,"daysSinceUpdate":27,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Rupanshoo Saxena","changedDate":"2026-02-16","id":4363109,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[Unicorn Platform] - Slash commanding (Post R4 Scope)","shiproom":"Green","priority":2,"daysSinceUpdate":27,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Unicorn","tags":"Consumer; CY24H2; idc; KR06 Unicorn; PartnerAsk; PortedToMSETs; ProjectUnicorn; Semester:Dt; Strategic Bets; Unicorn_IDC_FY26H1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Himank Airon","changedDate":"2026-02-16","id":4425106,"statusTweet":"Development in progress"},{"state":"RollingOut","riskCount":2,"title":"Enable Workflows in Shared and Private Channels","shiproom":"Green","priority":1,"daysSinceUpdate":4,"risks":"r0-overdue,r4-overdue","r4Date":"2026-03-16","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"Incident Repair Item; Lowcode FY25H2 Planning; MAI; MFP; NeptuneGA; NoParityIssues; Plat FY25H2; platformCY25H1; PlatWinSlack; TMO; T-Mobile; WinVsSlack; Workflows; Workflows - Slack Compete; WorkflowsCY25Q4","type":"Feature","committed":"Committed","r0Date":"2025-12-08","assignedTo":"Luis Torres","changedDate":"2026-03-11","id":4017239,"statusTweet":"Functionality to GA along with platform support: Shared channels: ready, Private channels: waiting on a platform dependency. GA Date: TBD"},{"state":"RollingOut","riskCount":2,"title":"[Shared Channels] Support full Apps Platform in Shared Channels","shiproom":"Green","priority":2,"daysSinceUpdate":6,"risks":"r0-overdue,r4-overdue","r4Date":"2026-01-20","areaPath":"MSTeams\\Unicorn","tags":"AppsAgents; Build2025; CESPartnerAsk; CESPartnerAskCY25H1; CESPartnerAskCY25H2; Consumer; CXTriage; CY24H2; CY25H1; CY25H2; KR06 Unicorn; MAI; MFP; NoParityIssues; OKRRMNov25; OKRRMOct25; PartnerAsk; PortedToMSETs; pri001; ProjectUnicorn; RM_Ship_11_2025; RM_Slip_10_2025; Semester:Br; Semester:Dt; Shared channel; SplCldsException; Strategic Bets; TACO-PartnerAsk; Unicorn_CY25H1; Unicorn_IDC_FY26H1; WinVsSlack","type":"Feature","committed":"Committed","r0Date":"2024-05-05","assignedTo":"Chandra Chebiyyam","changedDate":"2026-03-10","id":3468747,"statusTweet":"Currently in R2"},{"state":"RollingOut","riskCount":1,"title":"Graph API for enabling/disabling apps at a channel level.","shiproom":"Green","priority":2,"daysSinceUpdate":46,"risks":"stale","r4Date":"2026-06-30","areaPath":"MSTeams\\Unicorn","tags":"unicorn_sc_postGA","type":"Feature","committed":"Committed","r0Date":"2026-06-30","assignedTo":"Devi Shankar Jha","changedDate":"2026-01-29","id":4697902,"statusTweet":"enable FF in /beta prod"},{"state":"RollingOut","riskCount":2,"title":"[Neptune GA] Shared and Private Channels Support (Bot Posting)","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"stale,r0-overdue","r4Date":"2026-03-23","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"CXTriage; NeptuneGA; PlatWinSlack; QuarterTracking; WorkflowsCY25Q4","type":"Feature","committed":"Committed","r0Date":"2026-02-11","assignedTo":"Luis Torres","changedDate":"2026-03-03","id":4840824,"statusTweet":"SC release. PC pickers in R0, validating before further rollout. R4 support gated on full platform support for apps in PC."},{"state":"RollingOut","riskCount":2,"title":"[Neptune GA] Workflows v2 (Parent tacking item for external comms)","shiproom":"Green","priority":1,"daysSinceUpdate":3,"risks":"r0-overdue,r4-overdue","r4Date":"2026-02-09","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"admindocsmsg; CreateDesReq; CreateDesReqSS; CXTriage; DesktopOnly; export-auditing-na; Lowcode FY25H2 Planning; MAI; MFP; Neptune; OKRRMSep25; Plat FY25H2; platformCY25H1; PlatWinSlack; PortedToMSETs; RM_Plan_09_2025; RM_Ship_09_2025; SplCldsException; TMO; TMobile; WinVsSlack; Workflows; Workflows - Slack Compete; Workflows Backlog CY24H2","type":"Feature","committed":"Committed","r0Date":"2025-05-06","assignedTo":"Aditya Lele","changedDate":"2026-03-12","id":4106950,"statusTweet":"Workflows 2.0 is in R4"},{"state":"Proposed","riskCount":3,"title":"[COSMIC] [Updates] Cosmic migration","shiproom":"Green","priority":2,"daysSinceUpdate":110,"risks":"proposed,stale,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows\\Approvals","tags":"DesktopOnly; Lowcode FY25H2 Planning; MFP; Plat FY25H2; platformCY25H1; Workflows - Slack Compete; workflows backlog CY25H1","type":"Feature","committed":"Targeted","r0Date":"","assignedTo":"Fei Li (Teams Platform)","changedDate":"2025-11-25","id":4105464,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"[Help] [Neptune] Workflows","shiproom":null,"priority":2,"daysSinceUpdate":30,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Design\\Horizontals\\CX\\Help","tags":"AppsAndServices; NEW","type":"Task","committed":null,"r0Date":"","assignedTo":"Seija Emerson (ALLOVUS DESIGN INC)","changedDate":"2026-02-13","id":4617513,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Disable Workflow Store Provider up to R3.6","shiproom":null,"priority":2,"daysSinceUpdate":65,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Neil Okolowsky","changedDate":"2026-01-09","id":4800298,"statusTweet":null},{"state":"Active","riskCount":2,"title":"[DO NOT DELETE] Weekly Localization Pipeline Run","shiproom":null,"priority":2,"daysSinceUpdate":65,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"claude-sonnet-4.5; copilot:pullrequest-published; NeptuneClient","type":"Task","committed":null,"r0Date":"2026-04-30","assignedTo":"GitHub Copilot","changedDate":"2026-01-09","id":4921327,"statusTweet":null},{"state":"Active","riskCount":0,"title":"Trigger workflows from a link","shiproom":"Green","priority":2,"daysSinceUpdate":4,"risks":"","r4Date":"2026-04-14","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; H1Track; MAI; Need Mobile; NeedsSpec; Neptune_PostGA; OnePagerNeeded; PlatWinSlack; primitives; RunExperience; SplCldsParityGap; WinVsSlack; WinVsSlack-LT_tracking; Workflows; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"2026-03-27","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-11","id":4772552,"statusTweet":"03/11: Adding server side routes for redirect, encrypt/decrypt"},{"state":"Proposed","riskCount":4,"title":"Approvals app templates, list view supported in Workflows app","shiproom":"Green","priority":2,"daysSinceUpdate":65,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Workflows","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Loki Meyburg","changedDate":"2026-01-09","id":4797975,"statusTweet":null},{"state":"Active","riskCount":0,"title":"[Android] Run workflows from a shared link on Android","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"","r4Date":"2026-05-04","areaPath":"MSTeams\\Mobile Platform\\Personal App (JS SDK)","tags":"H1CY26; MAI; MobPlatBuild2026; MobPlatBuild2026_Design; SplCldsParityGap; UX_MobilePlatform; WinVSlack; WinVsSlack_IDC_WF_Mobile; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-03-30","assignedTo":"MANPREET SINGH","changedDate":"2026-03-16","id":4939417,"statusTweet":"Had multiple dev discussions with desktop engg POC to gain clarity and resolve open questions. Currently waiting for sample shareable link and composeExtension/queryLink invoke call support by workflows bot for link unfurling. "},{"state":"Proposed","riskCount":1,"title":"[iOS] Shared environment for teams to enable collaborative workflows on mobile [Validation]","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"proposed","r4Date":"2026-04-17","areaPath":"MSTeams\\Mobile Platform\\Personal App (JS SDK)","tags":"H1CY26; MAI; SplCldsParityGap; WinVsSlack; WinVsSlack_IDC_WF_Mobile; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-03-30","assignedTo":"Abhishek Gupta","changedDate":"2026-03-16","id":4939536,"statusTweet":"3/12: This verification item is dependent on work item 4772552. The desktop team is actively working on the dependency, and we will proceed with verification once their work is completed."},{"state":"Active","riskCount":2,"title":"Create Dev Design doc","shiproom":null,"priority":2,"daysSinceUpdate":36,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-02-08","id":5146589,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[Trigger from a link] Run workflow with owner credentials (Phase 1)","shiproom":"Green","priority":2,"daysSinceUpdate":20,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-23","id":5181948,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[Trigger from a link] Run workflow with runner credentials (Phase 2)","shiproom":"Green","priority":2,"daysSinceUpdate":20,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-23","id":5181951,"statusTweet":null},{"state":"Active","riskCount":1,"title":"Add feature flags","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-16","id":5185062,"statusTweet":null},{"state":"Active","riskCount":1,"title":"Add new trigger type for build from scratch","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-16","id":5185063,"statusTweet":null},{"state":"Active","riskCount":1,"title":"Link construction on copy to clipboard","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-16","id":5201296,"statusTweet":null},{"state":"Active","riskCount":1,"title":"Add new route to redirect to Teams deeplink","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-16","id":5201299,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"Add bot for link unfurl","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"proposed,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-16","id":5201300,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"Add new route with Run workflow button","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"proposed,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-16","id":5201305,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"Form builder during create for users to use during run experiences","shiproom":"Orange","priority":2,"daysSinceUpdate":4,"risks":"proposed,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"C1Cut; Connector; Design Needed; FY26H2AbovePMCutline; FY26H2WorkflowItems; H1Track; MAI; Need Mobile; OnePagerNeeded; PlatWinSlack; primitives; RunExperience; SplCldsException; SplCldsParityGap; WinVsSlack; Workflows; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"2026-04-13","assignedTo":"Dmitry Lesnoy","changedDate":"2026-03-11","id":4844119,"statusTweet":"POC is yet to begin which will derive the target dates"},{"state":"Proposed","riskCount":1,"title":"[Android] Support for rich text editor in form","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"proposed","r4Date":"2026-05-30","areaPath":"MSTeams\\Mobile Platform\\Personal App (JS SDK)","tags":"H1CY26; MAI; SplCldsException; SplCldsParityGap; WinVsSlack; WinVsSlack_IDC_WF_Mobile; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-04-30","assignedTo":"MANPREET SINGH","changedDate":"2026-03-16","id":4939430,"statusTweet":"1. This feature item is dependent on 4844119. 2. There's still no proper product spec available with the requirements. 3. Hence, putting tentative dates for now."},{"state":"Proposed","riskCount":1,"title":"[iOS] Support for rich text editor in form","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"proposed","r4Date":"2026-05-30","areaPath":"MSTeams\\Mobile Platform\\Personal App (JS SDK)","tags":"H1CY26; MAI; SplCldsException; SplCldsParityGap; WinVsSlack; WinVsSlack_IDC_WF_Mobile; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-04-30","assignedTo":"Abhishek Gupta","changedDate":"2026-03-16","id":4939433,"statusTweet":"1. This feature item is dependent on 4844119. 2. There's still no proper product spec available with the requirements. 3. Hence, putting tentative dates for now."},{"state":"RollingOut","riskCount":1,"title":"Support Rich text: Updated text box component for BFS and Templates (Enable @ mentions)","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"r0-overdue","r4Date":"2026-03-20","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"FY26H2WorkflowItems; MAI; PlatWinSlack; WinVsSlack","type":"Feature","committed":"Committed","r0Date":"2026-03-13","assignedTo":"Raksha Kashyap","changedDate":"2026-03-16","id":5033856,"statusTweet":"03/16 - Rolling out. PR in progress for adding variable references."},{"state":"Active","riskCount":1,"title":"Add E2E tests for @mentions","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Raksha Kashyap","changedDate":"2026-03-16","id":5189693,"statusTweet":null},{"state":"Active","riskCount":1,"title":"Add variable referencing in the user suggestion menu with \"@\" trigger","shiproom":null,"priority":2,"daysSinceUpdate":0,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Raksha Kashyap","changedDate":"2026-03-16","id":5189694,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"[Win vs Slack] Team Actions: Channel Lifecycle (FY26H2)","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"proposed,stale","r4Date":"2026-03-31","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"H1Track; MAI; PlatWinSlack; SplCldsParityGap; Team Connector; WinVsSlack; WinVsSlack-LT_tracking; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-05-04","assignedTo":"Tony Han","changedDate":"2026-03-03","id":5073109,"statusTweet":"02/17: Evaluating dependencies with TACO and Graph team to understand what behaviors are supported."},{"state":"Active","riskCount":2,"title":"[Teams Action+BFS]: Add member to a shared channel","shiproom":"Green","priority":2,"daysSinceUpdate":10,"risks":"stale,r0-overdue","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; Spec to review; SplCldsParityGap; Team Connector; Workflows; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"2026-03-06","assignedTo":"Adrian Solis (TEAMS)","changedDate":"2026-03-06","id":4878044,"statusTweet":"Building BFS"},{"state":"Blocked","riskCount":3,"title":"[Teams trigger + BFS] When user joins a shared/private channel","shiproom":"Green","priority":2,"daysSinceUpdate":10,"risks":"blocked,stale,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2AbovePMCutline; primitives; SplCldsParityGap; Team Connector; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"","assignedTo":"Osheen Khare","changedDate":"2026-03-05","id":4931381,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"[Teams Action + BFS] Archive a channel","shiproom":"Green","priority":2,"daysSinceUpdate":5,"risks":"proposed,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; primitives; SplCldsParityGap; Team Connector; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"","assignedTo":"Osheen Khare","changedDate":"2026-03-11","id":4931386,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"[Teams Action + BFS]: Update channel descriptions","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"proposed,stale,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; primitives; SplCldsParityGap; Team Connector; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"","assignedTo":"Osheen Khare","changedDate":"2026-03-03","id":4931393,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Support channel discovery among channel audience","shiproom":"Green","priority":2,"daysSinceUpdate":33,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; TFW_SLACK; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-10","id":4984654,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Sync Channel Membership With an M365 Group","shiproom":"Green","priority":2,"daysSinceUpdate":33,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; TFW_SLACK; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-10","id":4984692,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"[Teams Action+BFS] Show channels for specified users","shiproom":"Green","priority":2,"daysSinceUpdate":5,"risks":"proposed,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; Need Graph API; SplCldsParityGap; Team Connector; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"","assignedTo":"Osheen Khare","changedDate":"2026-03-11","id":4985035,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[Teams Trigger+BFS]: When a member is added to a Teams tag","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2WorkflowItems; Need Graph API; Team Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-03-03","id":5036075,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[Teams Action + BFS] Create a section","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2WorkflowItems; Need Graph API; Team Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-03-03","id":5068377,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"[Teams Action+BFS]: Remove member from a shared/private channel","shiproom":"Green","priority":2,"daysSinceUpdate":5,"risks":"proposed,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"BFS; Connector; FY26H2AbovePMCutline; FY26H2WorkflowItems; Spec to review; SplCldsParityGap; Team Connector; Workflows; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Osheen Khare","changedDate":"2026-03-11","id":5149335,"statusTweet":null},{"state":"Proposed","riskCount":1,"title":"[Win vs Slack] [Android] Team Actions: Channel Lifecycle (FY26H2) - validation","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"proposed","r4Date":"2026-05-25","areaPath":"MSTeams\\Mobile Platform\\Personal App (JS SDK)","tags":"Android; MAI; SplCldsParityGap; Team Connector; WinVsSlack; WinVsSlack-LT_tracking; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-05-11","assignedTo":"MANPREET SINGH","changedDate":"2026-03-16","id":5169227,"statusTweet":"This verification item is dependent on work item 5073109. Would continue with the validation post the completion of this dependent item."},{"state":"Proposed","riskCount":1,"title":"[Win vs Slack] [iOS] Team Actions: Channel Lifecycle (FY26H2)  - validation","shiproom":"Green","priority":2,"daysSinceUpdate":0,"risks":"proposed","r4Date":"2026-05-25","areaPath":"MSTeams\\Mobile Platform\\Personal App (JS SDK)","tags":"Android; MAI; SplCldsParityGap; Team Connector; WinVsSlack; WinVsSlack-LT_tracking; Workflows","type":"Feature","committed":"Committed","r0Date":"2026-05-11","assignedTo":"Abhishek Gupta","changedDate":"2026-03-16","id":5169254,"statusTweet":"3/12: This verification item is dependent on work item 5073109. The desktop team is currently evaluating dependencies on their side."},{"state":"Blocked","riskCount":3,"title":"[Win vs Slack] 3P connectors for DevOps & Proj. Mgmt. (Linear, Jenkins, Datadog, etc.) (FY26H2)","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"blocked,stale,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"MAI; PlatWinSlack; WinVsSlack; WinVsSlack-LT_tracking; Workflows","type":"Feature","committed":"Hard Cut","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-03-03","id":5073113,"statusTweet":"Not funded for H1"},{"state":"Proposed","riskCount":4,"title":"[AgentFlows integration] All 3P connectors available with a Copilot license (instead of an additional premium license)","shiproom":"Green","priority":2,"daysSinceUpdate":61,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; Workflows; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Loki Meyburg","changedDate":"2026-01-13","id":4791501,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Linear connector and templates","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"3P; Connector","type":"Feature","committed":"Targeted","r0Date":"","assignedTo":"Connor Rodewald","changedDate":"2026-02-24","id":4846408,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Build new and validate existing 3p connectors","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"1p connector; 3P","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":4910176,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[GitHub connector] Allow use to select a repo from the dropdown","shiproom":"Green","priority":2,"daysSinceUpdate":39,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"3P","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-04","id":5072547,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"[Win vs Slack] Linear - 3P Agent for DevOps & Proj. Mgmt. (FY26H2)","shiproom":"Green","priority":2,"daysSinceUpdate":5,"risks":"proposed,r0-missing","r4Date":"2026-05-31","areaPath":"MSTeams\\Platform\\Developer Portal","tags":"MAI; PlatWinSlack; WinVsSlack; WinVsSlack-LT_tracking","type":"Feature","committed":"Committed","r0Date":"","assignedTo":"Carter Gilliam","changedDate":"2026-03-10","id":5170796,"statusTweet":"external 3p ISV building an app for teams - No R0-R3.6 dates"},{"state":"Proposed","riskCount":4,"title":"Validate ServiceNow Connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186370,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Validate PagerDuty connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186372,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Validate Jira connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186375,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Build Datadog connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186376,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Build Jenkins connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186377,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Validate GitHub connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186379,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Build Confluence connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186381,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"Build Notion connector","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"Connector","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":5186382,"statusTweet":null},{"state":"Proposed","riskCount":2,"title":"[Win vs Slack] Ability to trigger message context/compose box workflows in Workflows 2.0","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"proposed,stale","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"CreateDesReqPlatform; Design Needed; DesReqPlatformCreated; MAI; Need Mobile; PlatWinSlack; RunExperience; SplCldsParityGap; WinVsSlack; WorkflowsC1","type":"Feature","committed":"Committed","r0Date":"2026-04-10","assignedTo":"Aditya Lele","changedDate":"2026-03-03","id":5079700,"statusTweet":"Ready to pick up after Workflows GA, R0/R2/R4 target dates expected 1st week of Feb"},{"state":"Proposed","riskCount":4,"title":"File workflows (view + run)","shiproom":"Green","priority":2,"daysSinceUpdate":48,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; Neptune_PostGA; OnePagerNeeded; RunExperience; WorkflowsC1; WorkflowsCY25Q4","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-01-26","id":4840131,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"MA In-Context Run Experience","shiproom":"Green","priority":2,"daysSinceUpdate":19,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; OnePagerNeeded; RunExperience; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-02-24","id":4844115,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"ME In-Context Run Experience","shiproom":"Green","priority":2,"daysSinceUpdate":48,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":"FY26H2AbovePMCutline; FY26H2WorkflowItems; OnePagerNeeded; RunExperience; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Tony Han","changedDate":"2026-01-26","id":4844116,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Change the neptune task module url for Service worker support","shiproom":null,"priority":2,"daysSinceUpdate":13,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Aditya Lele","changedDate":"2026-03-02","id":5174074,"statusTweet":null},{"state":"Proposed","riskCount":4,"title":"[Win vs Slack] Workflows manual trigger (File) experience improvements","shiproom":"Green","priority":2,"daysSinceUpdate":12,"risks":"proposed,stale,uncommitted,r0-missing","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows\\Teams","tags":"CreateDesReqPlatform; Design Needed; DesReqPlatformCreated; Need Mobile; RunExperience; SplCldsParityGap; WorkflowsC1","type":"Feature","committed":"Proposed","r0Date":"","assignedTo":"Aditya Lele","changedDate":"2026-03-03","id":5197111,"statusTweet":"Ready to pick up after Workflows GA, R0/R2/R4 target dates expected 1st week of Feb"},{"state":"Active","riskCount":2,"title":"Adaptive card rendering in neptune","shiproom":null,"priority":2,"daysSinceUpdate":10,"risks":"stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Aditya Lele","changedDate":"2026-03-05","id":5203817,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"Adaptive card rendering in neptune","shiproom":null,"priority":2,"daysSinceUpdate":13,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Aditya Lele","changedDate":"2026-03-03","id":5203818,"statusTweet":null},{"state":"Active","riskCount":1,"title":"People picker support for Adaptive Cards","shiproom":null,"priority":2,"daysSinceUpdate":5,"risks":"shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Aditya Lele","changedDate":"2026-03-10","id":5203819,"statusTweet":null},{"state":"Proposed","riskCount":3,"title":"ME Payload + other properties from TMP","shiproom":null,"priority":2,"daysSinceUpdate":10,"risks":"proposed,stale,shiproom","r4Date":"","areaPath":"MSTeams\\Platform\\Workflows","tags":null,"type":"Task","committed":null,"r0Date":"","assignedTo":"Aditya Lele","changedDate":"2026-03-05","id":5203821,"statusTweet":null}]};
 
-(()=>{
-  buildTree();
+// Build hierarchy from relations
+function buildTree(){
+  itemMap={};
+  DATA.items.forEach(function(item){ itemMap[item.id]=item; });
+  uberIds=[];
+  childMap={};
+  var seenRoots={};
+  var seenChildren={};
+  DATA.relations.forEach(function(rel){
+    if(rel.source===0 && !seenRoots[rel.target]){
+      seenRoots[rel.target]=true;
+      uberIds.push(rel.target);
+      if(!childMap[rel.target]) childMap[rel.target]=[];
+    }
+  });
+  DATA.relations.forEach(function(rel){
+    if(rel.source!==0 && childMap[rel.source]!==undefined){
+      var key=rel.source+'-'+rel.target;
+      if(!seenChildren[key]){
+        seenChildren[key]=true;
+        childMap[rel.source].push(rel.target);
+      }
+    }
+  });
+  uberIds.forEach(function(id){ if(expanded[id]===undefined) expanded[id]=true; });
+  features=DATA.items.filter(function(i){ return i.type==='Feature'; });
+}
+
+buildTree();
+
+(function(){
   renderTiles();
   fillAreas();
   renderHdr();
@@ -228,93 +263,101 @@ DATA = {"relations":[{"source":0,"target":3783618},{"source":3783618,"target":39
   document.getElementById('tbl').style.display='';
 })();
 
-// ─── Tree builder ───
-function buildTree(){
-  const map={};
-  DATA.items.forEach(i=>{map[i.id]=i});
-  const roots=[], kids={};
-  const seen=new Set();
-  DATA.relations.forEach(r=>{
-    if(r.source===0){
-      if(map[r.target]&&!seen.has(r.target)){seen.add(r.target);roots.push(map[r.target])}
-    }else{
-      if(!kids[r.source])kids[r.source]=[];
-      if(map[r.target]&&!kids[r.source].find(x=>x.id===r.target)){
-        kids[r.source].push(map[r.target]);
-        seen.add(r.target);
-      }
-    }
-  });
-  // orphans
-  DATA.items.forEach(i=>{if(!seen.has(i.id)&&!roots.find(x=>x.id===i.id))roots.push(i)});
-  tree=roots.map(r=>({item:r,children:(kids[r.id]||[]).map(c=>({item:c}))}));
+// --- Helpers ---
+function gv(item,k){return mods[item.id]&&mods[item.id][k]!==undefined?mods[item.id][k]:item[k]}
+function shipColor(item){return gv(item,'shiproom')||null}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// --- Expand / Collapse ---
+function toggleUber(id){
+  expanded[id]=!expanded[id];
+  renderRows();
+}
+function toggleAll(){
+  var allExp=uberIds.every(function(id){return expanded[id]});
+  uberIds.forEach(function(id){expanded[id]=!allExp});
+  renderRows();
+}
+function updateToggleBtn(){
+  var btn=document.getElementById('expandBtn');
+  if(!btn)return;
+  var allExp=uberIds.every(function(id){return expanded[id]});
+  btn.textContent=allExp?'Collapse All':'Expand All';
 }
 
-// ─── Helpers ───
-function gv(item,k){return mods[item.id]&&mods[item.id][k]!==undefined?mods[item.id][k]:item[k]}
-function rc(item){const r=gv(item,'risks');return r?r.split(',').filter(Boolean).length:0}
-function rl(item){const c=rc(item);return c>=2?'high':c===1?'medium':'low'}
-function feats(){return DATA.items.filter(i=>i.type==='Feature')}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-
-// ─── Tiles ───
+// --- Tiles (feature-count based) ---
 function renderTiles(){
-  const fs=feats();
-  const defs=[
-    {c:'total',  l:'Total Features',     n:fs.length,                                f:'total'},
-    {c:'high',   l:'\u{1F534} High Risk (2+)', n:fs.filter(x=>rc(x)>=2).length,      f:'high'},
-    {c:'medium', l:'\u{1F7E1} Medium Risk (1)', n:fs.filter(x=>rc(x)===1).length,     f:'medium'},
-    {c:'low',    l:'\u{1F7E2} Low Risk (0)',    n:fs.filter(x=>rc(x)===0).length,     f:'low'},
-    {c:'blocked',l:'Blocked',              n:fs.filter(x=>gv(x,'state')==='Blocked').length, f:'blocked'},
-    {c:'stale',  l:'Stale (7d+)',          n:fs.filter(x=>(gv(x,'risks')||'').includes('stale')).length, f:'stale'},
-    {c:'r0miss', l:'R0 Missing',           n:fs.filter(x=>(gv(x,'risks')||'').includes('r0-missing')).length, f:'r0miss'},
-    {c:'r0over', l:'R0 Overdue',           n:fs.filter(x=>(gv(x,'risks')||'').includes('r0-overdue')).length, f:'r0over'},
+  var fs=features;
+  var defs=[
+    {c:'total',l:'Total Features',n:fs.length,f:'total'},
+    {c:'green',l:'\uD83D\uDFE2 Green',n:fs.filter(function(x){return shipColor(x)==='Green'}).length,f:'green'},
+    {c:'orange',l:'\uD83D\uDFE0 Orange',n:fs.filter(function(x){return shipColor(x)==='Orange'}).length,f:'orange'},
+    {c:'red',l:'\uD83D\uDD34 Red',n:fs.filter(function(x){return shipColor(x)==='Red'}).length,f:'red'},
+    {c:'gray',l:'\u26AA No Status',n:fs.filter(function(x){return !shipColor(x)}).length,f:'gray'},
+    {c:'blocked',l:'Blocked',n:fs.filter(function(x){return gv(x,'state')==='Blocked'}).length,f:'blocked'},
+    {c:'stale',l:'Stale (7d+)',n:fs.filter(function(x){return(gv(x,'risks')||'').includes('stale')}).length,f:'stale'},
+    {c:'r0miss',l:'R0 Missing',n:fs.filter(function(x){return(gv(x,'risks')||'').includes('r0-missing')}).length,f:'r0miss'},
+    {c:'r0over',l:'R0 Overdue',n:fs.filter(function(x){return(gv(x,'risks')||'').includes('r0-overdue')}).length,f:'r0over'},
   ];
-  document.getElementById('tiles').innerHTML=defs.map(t=>
-    `<div class="tile ${t.c}${activeTile===t.f?' active':''}" onclick="tileClick('${t.f}')">
-       <div class="count">${t.n}</div><div class="label">${t.l}</div>
-     </div>`
-  ).join('');
+  document.getElementById('tiles').innerHTML=defs.map(function(t){
+    return '<div class="tile '+t.c+(activeTile===t.f?' active':'')+'" onclick="tileClick(\''+t.f+'\')">'
+      +'<div class="count">'+t.n+'</div><div class="label">'+t.l+'</div></div>';
+  }).join('');
 }
 function tileClick(f){activeTile=activeTile===f?null:f;renderTiles();applyFilters()}
 
-// ─── Area dropdown ───
+// --- Area dropdown ---
 function fillAreas(){
-  const as=[...new Set(DATA.items.map(i=>i.areaPath).filter(Boolean))].sort();
-  const sel=document.getElementById('areaSelect');
-  as.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a.split('\\').pop();sel.appendChild(o)});
+  var seen={}, as=[];
+  DATA.items.forEach(function(i){
+    if(i.areaPath&&!seen[i.areaPath]){seen[i.areaPath]=true;as.push(i.areaPath)}
+  });
+  as.sort();
+  var sel=document.getElementById('areaSelect');
+  as.forEach(function(a){var o=document.createElement('option');o.value=a;o.textContent=a.split('\\').pop();sel.appendChild(o)});
 }
 
-// ─── Filters ───
+// --- Item filter check ---
+function itemMatchesFilter(item){
+  var srch=document.getElementById('searchBox').value.toLowerCase();
+  var area=document.getElementById('areaSelect').value;
+  var ok=true;
+  if(ok&&activeTile) ok=passTile(item);
+  if(ok&&area) ok=(gv(item,'areaPath')||'')===area;
+  if(ok&&srch){
+    var h=[gv(item,'title'),gv(item,'assignedTo'),String(item.id),gv(item,'statusTweet'),gv(item,'type')].join(' ').toLowerCase();
+    ok=h.includes(srch);
+  }
+  return ok;
+}
+
+// --- Apply filters (tree-aware) ---
 function applyFilters(){
-  const srch=document.getElementById('searchBox').value.toLowerCase();
-  const area=document.getElementById('areaSelect').value;
-  const rows=document.querySelectorAll('#tbody tr');
-  const fPass=new Set();
-  tree.forEach(n=>{if(passTile(n.item))fPass.add(n.item.id)});
-  let vis=0;
-  rows.forEach(row=>{
-    const id=+row.dataset.id, pid=+(row.dataset.parent||0);
-    const item=DATA.items.find(i=>i.id===id);
-    if(!item){row.classList.add('hid');return}
-    let ok=true;
-    // tile
-    if(activeTile){ok=item.type==='Feature'?fPass.has(id):fPass.has(pid)}
-    // area
-    if(ok&&area){
-      const ia=gv(item,'areaPath')||'';
-      if(item.type==='Feature'){ok=ia===area}
-      else{const p=DATA.items.find(i=>i.id===pid);ok=(p&&(gv(p,'areaPath')||'')===area)||ia===area}
+  var vis=0;
+  var hasFilter=activeTile!==null||document.getElementById('searchBox').value.trim()!==''||document.getElementById('areaSelect').value!=='';
+  uberIds.forEach(function(uberId){
+    var uberItem=itemMap[uberId];
+    var children=(childMap[uberId]||[]).map(function(cid){return itemMap[cid]}).filter(Boolean);
+    var uberMatch=uberItem?itemMatchesFilter(uberItem):false;
+    var anyChildMatch=children.some(function(c){return itemMatchesFilter(c)});
+    var showUber=!hasFilter||(uberMatch||anyChildMatch);
+    var uberRow=document.querySelector('tr[data-uber="'+uberId+'"]');
+    if(uberRow){
+      uberRow.classList.toggle('hid',!showUber);
+      if(showUber) vis++;
     }
-    // search
-    if(ok&&srch){
-      const h=[gv(item,'title'),gv(item,'assignedTo'),String(item.id),gv(item,'statusTweet')].join(' ').toLowerCase();
-      ok=h.includes(srch);
-    }
-    // collapse
-    if(ok&&item.type==='Task'&&pid&&!expanded.has(pid))ok=false;
-    row.classList.toggle('hid',!ok);
-    if(ok)vis++;
+    children.forEach(function(child){
+      var childRow=document.querySelector('tr[data-id="'+child.id+'"][data-parent="'+uberId+'"]');
+      if(childRow){
+        var childVisible=false;
+        if(showUber&&expanded[uberId]){
+          if(!hasFilter||uberMatch) childVisible=true;
+          else childVisible=itemMatchesFilter(child);
+        }
+        childRow.classList.toggle('hid',!childVisible);
+        if(childVisible) vis++;
+      }
+    });
   });
   document.getElementById('nr').style.display=vis?'none':'';
 }
@@ -322,14 +365,15 @@ function applyFilters(){
 function passTile(item){
   if(!activeTile)return true;
   switch(activeTile){
-    case'total':return true;
-    case'high':return rc(item)>=2;
-    case'medium':return rc(item)===1;
-    case'low':return rc(item)===0;
-    case'blocked':return gv(item,'state')==='Blocked';
-    case'stale':return(gv(item,'risks')||'').includes('stale');
-    case'r0miss':return(gv(item,'risks')||'').includes('r0-missing');
-    case'r0over':return(gv(item,'risks')||'').includes('r0-overdue');
+    case 'total':return item.type==='Feature';
+    case 'green':return shipColor(item)==='Green';
+    case 'orange':return shipColor(item)==='Orange';
+    case 'red':return shipColor(item)==='Red';
+    case 'gray':return !shipColor(item);
+    case 'blocked':return gv(item,'state')==='Blocked';
+    case 'stale':return(gv(item,'risks')||'').includes('stale');
+    case 'r0miss':return(gv(item,'risks')||'').includes('r0-missing');
+    case 'r0over':return(gv(item,'risks')||'').includes('r0-overdue');
   }
   return true;
 }
@@ -341,186 +385,205 @@ function clearAllFilters(){
   renderTiles();applyFilters();
 }
 
-// ─── Header ───
+// --- Header ---
 function renderHdr(){
-  document.getElementById('hdr').innerHTML=COLS.map(c=>{
-    const cls=sortK===c.k?' sorted':'';
-    const arrow=c.sort?`<span class="sa">${sortK===c.k?(sortD===1?'▲':'▼'):'⇅'}</span>`:'';
-    return `<th class="${cls}" ${c.sort?`onclick="doSort('${c.k}')"`:''}>${c.l}${arrow}</th>`;
+  var toggleTh='<th class="toggle-col"></th>';
+  document.getElementById('hdr').innerHTML=toggleTh+COLS.map(function(c){
+    var cls=sortK===c.k?' sorted':'';
+    if(c.k==='title') cls+=' title-col';
+    var arrow=c.sort?'<span class="sa">'+(sortK===c.k?(sortD===1?'\u25B2':'\u25BC'):'\u21C5')+'</span>':'';
+    return '<th class="'+cls+'"'+(c.sort?' onclick="doSort(\''+c.k+'\')"':'')+'>'+c.l+arrow+'</th>';
   }).join('');
 }
 
-// ─── Sort ───
+// --- Sort ---
 function doSort(k){
   if(sortK===k)sortD*=-1;else{sortK=k;sortD=1}
   renderHdr();
-  const cmp=(a,b)=>{
-    let va,vb;
-    if(k==='_risk'){va=rc(a);vb=rc(b)}else{va=gv(a,k);vb=gv(b,k)}
-    if(va==null)va='';if(vb==null)vb='';
-    if(typeof va==='number'&&typeof vb==='number')return(va-vb)*sortD;
-    return String(va).localeCompare(String(vb),undefined,{numeric:true})*sortD;
-  };
-  tree.sort((a,b)=>cmp(a.item,b.item));
-  tree.forEach(n=>{if(n.children)n.children.sort((a,b)=>cmp(a.item,b.item))});
+  uberIds.sort(function(a,b){
+    var ia=itemMap[a],ib=itemMap[b];
+    if(!ia||!ib) return 0;
+    return cmpItems(ia,ib,k);
+  });
+  uberIds.forEach(function(uid){
+    if(childMap[uid]) childMap[uid].sort(function(a,b){
+      var ia=itemMap[a],ib=itemMap[b];
+      if(!ia||!ib) return 0;
+      return cmpItems(ia,ib,k);
+    });
+  });
   renderRows();
 }
 
-// ─── Render rows ───
-function renderRows(){
-  const tb=document.getElementById('tbody');
-  tb.innerHTML='';
-  tree.forEach(node=>{
-    tb.appendChild(mkRow(node.item,0,node.children.length,0));
-    node.children.forEach(ch=>{
-      const tr=mkRow(ch.item,1,0,node.item.id);
-      if(!expanded.has(node.item.id))tr.classList.add('hid');
-      tb.appendChild(tr);
-    });
-  });
-  applyFilters();
+function cmpItems(a,b,k){
+  var va,vb;
+  if(k==='_risk'){
+    var order={Green:0,Orange:1,Red:2};
+    va=shipColor(a)?(order[shipColor(a)]!==undefined?order[shipColor(a)]:3):3;
+    vb=shipColor(b)?(order[shipColor(b)]!==undefined?order[shipColor(b)]:3):3;
+  }else{va=gv(a,k);vb=gv(b,k)}
+  if(va==null)va='';if(vb==null)vb='';
+  if(typeof va==='number'&&typeof vb==='number')return(va-vb)*sortD;
+  return String(va).localeCompare(String(vb),undefined,{numeric:true})*sortD;
 }
 
-function mkRow(item,depth,cc,pid){
-  const tr=document.createElement('tr');
+// --- Render rows (hierarchical tree) ---
+function renderRows(){
+  var tb=document.getElementById('tbody');
+  tb.innerHTML='';
+  uberIds.forEach(function(uberId){
+    var uber=itemMap[uberId];
+    if(!uber) return;
+    var children=(childMap[uberId]||[]).map(function(cid){return itemMap[cid]}).filter(Boolean);
+    tb.appendChild(mkUberRow(uber,children.length));
+    if(expanded[uberId]){
+      children.forEach(function(child,idx){
+        tb.appendChild(mkChildRow(child,uberId,idx===children.length-1));
+      });
+    }
+  });
+  applyFilters();
+  updateToggleBtn();
+}
+
+function mkUberRow(item,childCount){
+  var tr=document.createElement('tr');
+  tr.dataset.uber=item.id;
   tr.dataset.id=item.id;
-  tr.dataset.depth=depth;
-  if(pid)tr.dataset.parent=pid;
-  tr.classList.add(item.type==='Feature'?'feat':'task');
-  if(mods[item.id])tr.classList.add('mod');
-  COLS.forEach(col=>{
-    const td=document.createElement('td');
-    td.innerHTML=cell(item,col,depth,cc);
-    if(col.k==='title')td.classList.add('tc');
-    if(col.k==='statusTweet')td.classList.add('tw');
+  tr.className='uber-row'+(mods[item.id]?' mod':'');
+  var isExp=expanded[item.id];
+  // Toggle column (separate first column)
+  var toggleTd=document.createElement('td');
+  toggleTd.className='toggle-col';
+  toggleTd.innerHTML='<span class="toggle-btn" onclick="event.stopPropagation();toggleUber('+item.id+')">'+(isExp?'\u25BC':'\u25B6')+'</span>';
+  tr.appendChild(toggleTd);
+  COLS.forEach(function(col){
+    var td=document.createElement('td');
+    if(col.k==='title'){
+      td.classList.add('tc');
+      var badge='<span class="child-badge">'+childCount+' item'+(childCount!==1?'s':'')+'</span>';
+      td.innerHTML=cell(item,col)+badge;
+    }else if(col.k==='type'){
+      td.innerHTML='<span class="type-badge '+(item.type||'')+'">'+esc(item.type||'')+'</span>';
+    }else{
+      td.innerHTML=cell(item,col);
+      if(col.k==='statusTweet') td.classList.add('tw');
+    }
+    tr.appendChild(td);
+  });
+  tr.style.cursor='pointer';
+  tr.addEventListener('click',function(e){
+    if(!e.target.closest('.ed')&&!e.target.closest('.toggle-btn')&&!e.target.closest('a'))
+      toggleUber(item.id);
+  });
+  return tr;
+}
+
+function mkChildRow(item,parentId,isLast){
+  var tr=document.createElement('tr');
+  tr.dataset.id=item.id;
+  tr.dataset.parent=parentId;
+  tr.className='child-row'+(mods[item.id]?' mod':'');
+  // Empty toggle column for child rows
+  var emptyTd=document.createElement('td');
+  emptyTd.className='toggle-col';
+  tr.appendChild(emptyTd);
+  COLS.forEach(function(col){
+    var td=document.createElement('td');
+    if(col.k==='title'){
+      td.classList.add('tc');
+      var connector=isLast?'\u2514\u2500':'\u251C\u2500';
+      td.innerHTML='<span class="tree-indent">'+connector+'</span>'+cell(item,col);
+    }else if(col.k==='type'){
+      td.innerHTML='<span class="type-badge '+(item.type||'')+'">'+esc(item.type||'')+'</span>';
+    }else{
+      td.innerHTML=cell(item,col);
+      if(col.k==='statusTweet') td.classList.add('tw');
+    }
     tr.appendChild(td);
   });
   return tr;
 }
 
-function cell(item,col,depth,cc){
-  const v=gv(item,col.k);
+function cell(item,col){
+  var v=gv(item,col.k);
   switch(col.k){
-    // Expand toggle
-    case'_exp':
-      if(item.type==='Feature'&&cc>0){
-        const e=expanded.has(item.id);
-        return `<button class="tree-toggle" onclick="togExp(${item.id})" title="${e?'Collapse':'Expand'}">${e?'▼':'▶'}</button>`;
-      }
-      return depth>0?'<span class="tree-indent"></span>':'';
-
-    // Risk dot
-    case'_risk':
-      if(item.type!=='Feature')return'';
-      return rl(item)==='high'?'\u{1F534}':rl(item)==='medium'?'\u{1F7E1}':'\u{1F7E2}';
-
-    // ID
-    case'id':return `<a href="${ADO}${item.id}" target="_blank" title="Open in ADO">${item.id}</a>`;
-
-    // Type
-    case'type':return item.type==='Feature'?'\u{1F4CB}':'\u2705';
-
-    // Title
-    case'title':{
-      const badge=item.type==='Feature'&&cc>0?`<span class="child-badge">${cc} task${cc>1?'s':''}</span>`:'';
-      return edWrap(item,col,esc(v||''))+badge;
+    case '_risk':{
+      var sc=shipColor(item);
+      if(sc==='Green')return '<span class="sd Green" title="Green"></span>';
+      if(sc==='Orange')return '<span class="sd Orange" title="Orange"></span>';
+      if(sc==='Red')return '<span class="sd Red" title="Red"></span>';
+      return '<span class="sd Gray" title="No status"></span>';
     }
-
-    // State
-    case'state':{
-      const h=`<span class="sb ${v||''}">${v||'\u2014'}</span>`;
+    case 'id':return '<a href="'+ADO+item.id+'" target="_blank" title="Open in ADO">'+item.id+'</a>';
+    case 'title':return col.ed?edWrap(item,col,esc(v||'')):esc(v||'');
+    case 'type':return '<span class="type-badge '+(v||'')+'">'+esc(v||'')+'</span>';
+    case 'state':{
+      var h='<span class="sb '+(v||'')+'">'+(v||'\u2014')+'</span>';
       return col.ed?edWrap(item,col,h):h;
     }
-
-    // Priority
-    case'priority':{
-      const c=v==1?'p1':v==2?'p2':'p3';
-      const h=`<span class="pb ${c}">P${v||'?'}</span>`;
+    case 'priority':{
+      var c=v==1?'p1':v==2?'p2':'p3';
+      var h='<span class="pb '+c+'">P'+(v||'?')+'</span>';
       return col.ed?edWrap(item,col,h):h;
     }
-
-    // Committed
-    case'committed':{
-      const c=(v||'').replace(/\s/g,'');
-      const h=`<span class="cb ${c}">${v||'\u2014'}</span>`;
+    case 'committed':{
+      var c2=(v||'').replace(/\s/g,'');
+      var h='<span class="cb '+c2+'">'+(v||'\u2014')+'</span>';
       return col.ed?edWrap(item,col,h):h;
     }
-
-    // Shiproom
-    case'shiproom':return v?`<span class="sd ${v}" title="${v}"></span>`:'\u2014';
-
-    // Owner
-    case'assignedTo':return col.ed?edWrap(item,col,esc(v||'\u2014')):esc(v||'\u2014');
-
-    // Dates
-    case'r0Date':case'r4Date':{
-      let cls='dc';
-      if(col.k==='r0Date'&&item.type==='Feature'&&!v)cls+=' missing';
+    case 'shiproom':return v?'<span class="sd '+v+'" title="'+v+'"></span>':'\u2014';
+    case 'assignedTo':return col.ed?edWrap(item,col,esc(v||'\u2014')):esc(v||'\u2014');
+    case 'r0Date':case 'r4Date':{
+      var cls='dc';
+      if(col.k==='r0Date'&&!v)cls+=' missing';
       else if(v&&new Date(v)<new Date())cls+=' overdue';
-      const txt=v||(item.type==='Feature'?'\u26A0 missing':'\u2014');
-      const h=`<span class="${cls}">${txt}</span>`;
+      var txt=v||'\u26A0 missing';
+      var h='<span class="'+cls+'">'+txt+'</span>';
       return col.ed?edWrap(item,col,h):h;
     }
-
-    // Days since update
-    case'daysSinceUpdate':{
-      const d=v||0;
-      const c=d>=14?'crit':d>=7?'warn':'ok';
-      return `<span class="db ${c}">${d}d</span>`;
+    case 'daysSinceUpdate':{
+      var d=v||0;
+      var c3=d>=14?'crit':d>=7?'warn':'ok';
+      return '<span class="db '+c3+'">'+d+'d</span>';
     }
-
-    // Status tweet
-    case'statusTweet':{
-      const raw=v||'';
-      const short=esc(raw.length>60?raw.slice(0,60)+'…':raw)||'\u2014';
-      const full=raw?`<div class="tw-full">${esc(raw)}</div>`:'';
+    case 'statusTweet':{
+      var raw=v||'';
+      var short=esc(raw.length>60?raw.slice(0,60)+'\u2026':raw)||'\u2014';
+      var full=raw?'<div class="tw-full">'+esc(raw)+'</div>':'';
       return col.ed?edWrap(item,col,short)+full:short+full;
     }
-
-    // Risk signals
-    case'risks':{
-      const r=v||'';
-      if(!r)return'<span style="opacity:.4">\u2014</span>';
-      return r.split(',').filter(Boolean).map(t=>`<span class="rt ${t}">${t}</span>`).join(' ');
+    case 'risks':{
+      var r=v||'';
+      if(!r)return '<span style="opacity:.4">\u2014</span>';
+      return r.split(',').filter(Boolean).map(function(t){return '<span class="rt '+t+'">'+t+'</span>'}).join(' ');
     }
-
-    // Area path
-    case'areaPath':{
-      const parts=(v||'').split('\\');
-      return `<span title="${esc(v||'')}">${esc(parts[parts.length-1]||'\u2014')}</span>`;
+    case 'areaPath':{
+      var parts=(v||'').split('\\');
+      return '<span title="'+esc(v||'')+'">'+esc(parts[parts.length-1]||'\u2014')+'</span>';
     }
   }
-  return esc(String(v??''));
+  return esc(String(v!=null?v:''));
 }
 
 function edWrap(item,col,html){
-  return `<span class="ed" onclick="startEd(event,${item.id},'${col.k}','${col.ed||'text'}')" title="Click to edit">${html}</span>`;
+  return '<span class="ed" onclick="startEd(event,'+item.id+',\''+col.k+'\',\''+(col.ed||'text')+'\')" title="Click to edit">'+html+'</span>';
 }
 
-// ─── Expand / Collapse ───
-function togExp(id){expanded.has(id)?expanded.delete(id):expanded.add(id);renderRows()}
-function toggleExpandAll(){
-  allExp=!allExp;
-  if(allExp){tree.forEach(n=>{if(n.children.length)expanded.add(n.item.id)})}else{expanded.clear()}
-  document.getElementById('expandBtn').textContent=allExp?'Collapse All':'Expand All';
-  renderRows();
-}
-
-// ─── Inline Editing ───
+// --- Inline Editing ---
 function startEd(ev,id,field,type){
   ev.stopPropagation();
-  const span=ev.currentTarget;
+  var span=ev.currentTarget;
   if(span.querySelector('.ei'))return;
-  const item=DATA.items.find(i=>i.id===id);
+  var item=itemMap[id];
   if(!item)return;
-  const cur=String(gv(item,field)||'');
-  const col=COLS.find(c=>c.k===field);
-  let inp;
-
+  var cur=String(gv(item,field)||'');
+  var col=COLS.find(function(c){return c.k===field});
+  var inp;
   if(type==='select'){
     inp=document.createElement('select');
     inp.className='ei';
-    (col.opts||[]).forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;if(o===cur)op.selected=true;inp.appendChild(op)});
+    (col.opts||[]).forEach(function(o){var op=document.createElement('option');op.value=o;op.textContent=o;if(o===cur)op.selected=true;inp.appendChild(op)});
   }else if(type==='date'){
     inp=document.createElement('input');inp.type='date';inp.className='ei';inp.value=cur;
   }else if(type==='textarea'){
@@ -528,12 +591,10 @@ function startEd(ev,id,field,type){
   }else{
     inp=document.createElement('input');inp.type='text';inp.className='ei';inp.value=cur;
   }
-
   span.innerHTML='';span.appendChild(inp);inp.focus();
   if(inp.select&&type!=='select')inp.select();
-
-  const commit=()=>{
-    const nv=inp.value;
+  var commit=function(){
+    var nv=inp.value;
     if(nv!==cur){
       if(!mods[id])mods[id]={};
       mods[id][field]=field==='priority'?parseInt(nv):nv;
@@ -542,34 +603,34 @@ function startEd(ev,id,field,type){
     renderRows();
   };
   inp.addEventListener('blur',commit);
-  inp.addEventListener('keydown',e=>{
+  inp.addEventListener('keydown',function(e){
     if(e.key==='Enter'&&type!=='textarea'){e.preventDefault();inp.blur()}
     if(e.key==='Escape'){inp.value=cur;inp.blur()}
   });
 }
 
-// ─── Save ───
+// --- Save ---
 function updSave(){
-  const n=Object.keys(mods).length;
-  const btn=document.getElementById('saveBtn');
+  var n=Object.keys(mods).length;
+  var btn=document.getElementById('saveBtn');
   btn.style.display=n?'inline-flex':'none';
   document.getElementById('saveBadge').textContent=n;
 }
 
 function saveChanges(){
-  const n=Object.keys(mods).length;
-  Object.entries(mods).forEach(([id,fields])=>{
-    const item=DATA.items.find(i=>i.id===+id);
-    if(item)Object.assign(item,fields);
+  var n=Object.keys(mods).length;
+  Object.entries(mods).forEach(function(entry){
+    var item=itemMap[+entry[0]];
+    if(item) Object.assign(item,entry[1]);
   });
   mods={};updSave();renderTiles();renderRows();
-  toast(`\u2705 ${n} item${n!==1?'s':''} saved locally`);
+  toast('\u2705 '+n+' item'+(n!==1?'s':'')+' saved locally');
 }
 
 function toast(msg){
-  const t=document.getElementById('toast');
+  var t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  setTimeout(function(){t.classList.remove('show')},3000);
 }
 </script>
 </body>
