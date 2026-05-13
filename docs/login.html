@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A365 Execution Dashboard — Sign In</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', -apple-system, sans-serif; background: #f5f6fa; color: #2d3748; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); max-width: 480px; width: 90%; padding: 2.5rem; text-align: center; }
+    .logo { font-size: 2rem; margin-bottom: 0.5rem; }
+    h1 { font-size: 1.4rem; color: #1a202c; margin-bottom: 0.25rem; }
+    .subtitle { font-size: 0.95rem; color: #718096; margin-bottom: 1.5rem; }
+    .info-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem 1.25rem; text-align: left; margin-bottom: 1.5rem; }
+    .info-box p { font-size: 0.9rem; color: #4a5568; line-height: 1.6; margin-bottom: 0.5rem; }
+    .info-box p:last-child { margin-bottom: 0; }
+    .info-label { font-weight: 600; color: #2d3748; }
+    .sign-in-btn { display: inline-block; background: #0078d4; color: #fff; font-size: 1rem; font-weight: 600; padding: 0.75rem 2rem; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+    .sign-in-btn:hover { background: #106ebe; }
+    .note { font-size: 0.82rem; color: #a0aec0; margin-top: 1.25rem; line-height: 1.5; }
+    .note a { color: #4299e1; text-decoration: none; }
+    .note a:hover { text-decoration: underline; }
+    .ms-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #718096; margin-bottom: 1.25rem; }
+    .ms-badge svg { width: 16px; height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">📊</div>
+    <h1>A365 Execution Dashboard</h1>
+    <div class="subtitle">Platform Win vs Slack — Microsoft Internal</div>
+
+    <div class="ms-badge">
+      <svg viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+      Microsoft Internal Tool
+    </div>
+
+    <div class="info-box">
+      <p><span class="info-label">Published by:</span> Atul Mehta (<a href="mailto:atulmehta@microsoft.com">atulmehta@microsoft.com</a>)</p>
+      <p><span class="info-label">Team:</span> A365 / MSTeams Engineering</p>
+      <p><span class="info-label">Purpose:</span> Execution risk dashboard pulling live data from ADO for the Platform Win vs Slack initiative.</p>
+      <p><span class="info-label">Data accessed:</span> Your basic profile (name, email) for authentication only. No data is stored.</p>
+    </div>
+
+    <a class="sign-in-btn" href="/.auth/login/aad?post_login_redirect_uri=/index.html">Sign in with Microsoft</a>
+
+    <p class="note">
+      You'll see a standard Azure consent prompt — this is expected.<br>
+      Questions or concerns? Contact <a href="mailto:atulmehta@microsoft.com">atulmehta@microsoft.com</a>
+    </p>
+  </div>
+</body>
+</html>
